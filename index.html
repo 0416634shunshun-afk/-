@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="思考力道場">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0d0d0d">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Crect width='180' height='180' rx='40' fill='%230d0d0d'/%3E%3Ctext x='90' y='120' font-size='90' text-anchor='middle' fill='%23c8f57a'%3E&#x9053;%3C/text%3E%3C/svg%3E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="思考力道場">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0d0d0d">
+<link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAAGKjqJAAAACXBIWXMAAAsTAAALEwEAmpwYAAAF2klEQVR4nO3dO3LbMBRAUSlVFuZFuYAsJKtIF5CqZEPZSWbGk8RJHNvx7+OcmQUkgAQfLkiR7o+Pjx8A/vrz3QcA30moSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSYSaRKhJhJpEqEmEmkSoSe8AAAD//wMAUEsDBBQABgAIAAAAIQCWta3ilgYAAFAbAAAT">
+<title>思考力道場</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&family=DM+Mono:wght@400;500&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0d;
+    --surface: #161616;
+    --surface2: #1f1f1f;
+    --border: #2a2a2a;
+    --accent: #c8f57a;
+    --accent2: #7af5c8;
+    --text: #e8e8e0;
+    --muted: #6b6b60;
+    --danger: #f57a7a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; min-height: 100vh; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
+  header { display: flex; align-items: center; justify-content: space-between; padding: 24px 40px; border-bottom: 1px solid var(--border); }
+  .logo { font-size: 18px; font-weight: 800; color: var(--accent); }
+  .logo span { color: var(--text); }
+  .streak { display: flex; align-items: center; gap: 8px; font-family: 'DM Mono', monospace; font-size: 13px; color: var(--muted); }
+  .streak-num { background: var(--surface2); border: 1px solid var(--border); padding: 4px 12px; border-radius: 20px; color: var(--accent); }
+  .tabs { display: flex; padding: 0 40px; border-bottom: 1px solid var(--border); }
+  .tab { padding: 16px 24px; font-size: 13px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; cursor: pointer; border: none; background: none; color: var(--muted); border-bottom: 2px solid transparent; transition: all 0.2s; font-family: 'Syne', sans-serif; }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  main { padding: 40px; max-width: 860px; margin: 0 auto; }
+  .section { display: none; }
+  .section.active { display: block; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 32px; margin-bottom: 20px; }
+  .card-label { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+  .chip { padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; border: 1px solid var(--border); background: transparent; color: var(--muted); font-family: 'Syne', sans-serif; transition: all 0.15s; }
+  .chip:hover { border-color: var(--accent); color: var(--accent); }
+  .chip.active { background: var(--accent); color: #0d0d0d; border-color: var(--accent); }
+  .question-box { background: var(--surface2); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 12px; padding: 24px 28px; margin-bottom: 20px; font-family: 'Noto Serif JP', serif; font-size: 16px; line-height: 1.85; color: var(--text); min-height: 72px; }
+  .question-box.placeholder { color: var(--muted); font-size: 14px; font-style: italic; border-left-color: var(--border); }
+  .hint-box { background: var(--surface2); border: 1px solid var(--border); border-left: 3px solid #5a5a50; border-radius: 12px; padding: 18px 24px; margin-bottom: 20px; font-family: 'Noto Serif JP', serif; font-size: 13px; line-height: 1.8; color: var(--muted); display: none; }
+  .hint-box.visible { display: block; }
+  .hint-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #5a5a50; margin-bottom: 8px; }
+  textarea { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 20px; color: var(--text); font-family: 'Noto Serif JP', serif; font-size: 15px; line-height: 1.8; resize: vertical; min-height: 140px; outline: none; transition: border-color 0.2s; }
+  textarea:focus { border-color: var(--accent); }
+  textarea::placeholder { color: var(--muted); }
+  textarea:disabled { opacity: 0.4; }
+  .btn-row { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; align-items: center; }
+  .btn { padding: 11px 22px; border-radius: 10px; border: none; font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+  .btn-primary { background: var(--accent); color: #0d0d0d; }
+  .btn-primary:hover { opacity: 0.85; transform: translateY(-1px); }
+  .btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none !important; }
+  .timer-row { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+  .timer { font-family: 'DM Mono', monospace; font-size: 32px; font-weight: 500; color: var(--accent); min-width: 84px; }
+  .timer.warning { color: var(--danger); }
+  .progress-bar { flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 1s linear; }
+  .feedback-box { background: var(--surface2); border: 1px solid var(--accent2); border-radius: 12px; padding: 24px 28px; margin-top: 20px; display: none; animation: fadeIn 0.35s ease; }
+  .feedback-box.visible { display: block; }
+  .feedback-label { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent2); margin-bottom: 12px; }
+  .feedback-text { font-family: 'Noto Serif JP', serif; font-size: 14px; line-height: 1.85; color: var(--text); }
+  .rubric { margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .rubric-item { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+  .rubric-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .rubric-stars { font-size: 15px; letter-spacing: 2px; }
+  .model-answer { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent2); border-radius: 12px; padding: 18px 22px; margin-top: 16px; font-family: 'Noto Serif JP', serif; font-size: 14px; line-height: 1.85; color: var(--text); }
+  .model-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent2); margin-bottom: 10px; }
+  .history-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; margin-bottom: 12px; }
+  .history-meta { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); margin-bottom: 8px; display: flex; justify-content: space-between; }
+  .history-q { font-size: 13px; color: var(--muted); margin-bottom: 6px; font-family: 'Noto Serif JP', serif; }
+  .history-a { font-size: 14px; color: var(--text); font-family: 'Noto Serif JP', serif; line-height: 1.6; }
+  .empty { text-align: center; padding: 60px 20px; color: var(--muted); font-family: 'Noto Serif JP', serif; }
+  .counter { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); margin-left: auto; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">思考力<span>道場</span></div>
+  <div class="streak">連続日数 <span class="streak-num" id="streak-display">0日</span></div>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('hypothesis')">仮説思考</button>
+  <button class="tab" onclick="switchTab('ai')">AI活用</button>
+  <button class="tab" onclick="switchTab('history')">履歴</button>
+</div>
+
+<main>
+  <!-- 仮説思考 -->
+  <div id="section-hypothesis" class="section active">
+    <div class="card">
+      <div class="card-label">仮説思考ドリル — 90秒で3つの仮説を立てる</div>
+      <div class="chips">
+        <button class="chip active" onclick="selectChip(this,'hyp','ビジネス')">ビジネス</button>
+        <button class="chip" onclick="selectChip(this,'hyp','マーケ')">マーケ</button>
+        <button class="chip" onclick="selectChip(this,'hyp','組織')">組織</button>
+        <button class="chip" onclick="selectChip(this,'hyp','市場')">市場</button>
+      </div>
+      <div class="question-box placeholder" id="hyp-question">「例題を出す」を押してください</div>
+      <div class="timer-row" id="hyp-timer-row" style="display:none">
+        <div class="timer" id="hyp-timer">01:30</div>
+        <div class="progress-bar"><div class="progress-fill" id="hyp-progress" style="width:100%"></div></div>
+      </div>
+      <textarea id="hyp-answer" placeholder="仮説① なぜなら…&#10;仮説② あるいは…&#10;仮説③ もしくは…&#10;&#10;— 正解より「量とスピード」を優先 —" disabled></textarea>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="getHypQuestion()">📋 例題を出す</button>
+        <button class="btn btn-secondary" id="hyp-timer-btn" onclick="startTimer()" disabled>⏱ タイマー開始</button>
+        <button class="btn btn-secondary" id="hyp-hint-btn" onclick="toggleHint('hyp-hint')" disabled>💡 ヒント</button>
+        <button class="btn btn-secondary" id="hyp-submit-btn" onclick="submitHyp()" disabled>✦ 採点する</button>
+        <span class="counter" id="hyp-counter"></span>
+      </div>
+    </div>
+    <div class="hint-box" id="hyp-hint">
+      <div class="hint-label">考える軸のヒント</div>
+      <div id="hyp-hint-text"></div>
+    </div>
+    <div class="feedback-box" id="hyp-feedback">
+      <div class="feedback-label">採点結果</div>
+      <div class="feedback-text" id="hyp-fb-text"></div>
+      <div class="rubric" id="hyp-rubric"></div>
+      <div class="model-answer">
+        <div class="model-label">模範仮説の例</div>
+        <div id="hyp-model-text"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI活用 -->
+
+  <div id="section-ai" class="section">
+    <div class="card">
+      <div class="card-label">AIプロンプト設計ドリル</div>
+      <div class="chips">
+        <button class="chip active" onclick="selectChip(this,'ai','提案')">提案</button>
+        <button class="chip" onclick="selectChip(this,'ai','分析')">分析</button>
+        <button class="chip" onclick="selectChip(this,'ai','交渉')">交渉</button>
+        <button class="chip" onclick="selectChip(this,'ai','報告')">報告</button>
+      </div>
+      <div class="question-box placeholder" id="ai-question">「シナリオを出す」を押してください</div>
+      <textarea id="ai-answer" placeholder="設計するプロンプトを書いてください&#10;&#10;【役割】あなたは〇〇の専門家です。&#10;【制約】〜という条件で&#10;【出力】〜の形式で〜してください" disabled></textarea>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="getAiQuestion()">📋 シナリオを出す</button>
+        <button class="btn btn-secondary" id="ai-hint-btn" onclick="toggleHint('ai-hint')" disabled>💡 ヒント</button>
+        <button class="btn btn-secondary" id="ai-submit-btn" onclick="submitAi()" disabled>✦ 採点する</button>
+        <span class="counter" id="ai-counter"></span>
+      </div>
+    </div>
+    <div class="hint-box" id="ai-hint">
+      <div class="hint-label">良いプロンプトの3要素</div>
+      <div id="ai-hint-text"></div>
+    </div>
+    <div class="feedback-box" id="ai-feedback">
+      <div class="feedback-label">採点結果</div>
+      <div class="feedback-text" id="ai-fb-text"></div>
+      <div class="rubric" id="ai-rubric"></div>
+      <div class="model-answer">
+        <div class="model-label">模範プロンプトの例</div>
+        <div id="ai-model-text"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 履歴 -->
+
+  <div id="section-history" class="section">
+    <div class="card">
+      <div class="card-label">トレーニング履歴</div>
+      <div id="history-list"></div>
+    </div>
+  </div>
+</main>
+
+<script>
+const BANK = {
+  hyp: {
+    ビジネス: [
+      { q:"老舗百貨店の売上が5年連続で下落している。なぜか？", hint:"①顧客層の変化　②競合環境の変化　③商品・体験価値の陳腐化 の3軸で考える", model:"①コアターゲット（50〜60代）の節約志向強まり + EC移行\n②専門店・アウトレット・ECの台頭で「品揃え優位」が消失\n③インバウンド集中で地元顧客との関係性が希薄化した"},
+      { q:"SaaSスタートアップが資金調達直後に離職率が上がる傾向がある。なぜか？", hint:"①創業期メンバーの心理変化　②急拡大採用の弊害　③文化の変質 で考える", model:"①IPO/Exit前提で入社した初期メンバーが「ゴール」と感じ次へ向かう\n②急募採用で文化フィットしない人材が増え既存メンバーが居心地悪くなる\n③意思決定が遅くなりスタートアップらしさが失われエンジニア・営業が離脱"},
+      { q:"コンビニの新商品の約7割が3ヶ月以内に棚から消える。なぜこの構造が続くのか？", hint:"①仕入れ側の意図　②消費者行動　③棚スペースの経済学 で考える", model:"①仮説検証コストが低く失敗しても学習データが得られる\n②新商品への「試し買い」需要自体がコンビニの集客に貢献している\n③定番商品の安定利益があるため新商品の失敗リスクを許容できる"},
+      { q:"黒字にもかかわらず突然閉店する飲食チェーンがある。なぜか？", hint:"①財務構造（利益≠キャッシュ）　②不動産・固定費　③戦略的判断 で考える", model:"①売上は立つが家賃・人件費の固定費でキャッシュフローが悪化\n②より利益率の高い立地・業態への転換を優先し戦略的撤退を選択\n③フランチャイズオーナーのモチベ低下・後継者不在による自発的閉店"},
+    ],
+    マーケ: [
+      { q:"高評価レビューが多い商品より、賛否両論の商品の方が売れることがある。なぜか？", hint:"①口コミの拡散性　②消費者の選択行動　③ターゲット絞り込み効果 で考える", model:"①賛否両論は感情的な議論を生みSNS拡散を促進する\n②「自分向き」と判断した人の購買意欲が高まりコア顧客を獲得する\n③全員に好かれる製品は誰の記憶にも残らず差別化できない"},
+      { q:"無料サンプルを配ると、かえって商品の売上が下がることがある。なぜか？", hint:"①知覚価値の変化　②購買動機の消失　③ブランドポジショニング で考える", model:"①無料体験で「試した」欲求が満たされ購買動機が消える\n②「タダでもらえるもの」という低価値イメージがブランドに定着する\n③本来のターゲット外の人が来店しコア顧客の体験を損ねる"},
+      { q:"競合が大規模なテレビCMを打った翌月、自社の売上も増えた。なぜか？", hint:"①市場全体の活性化　②比較購買行動　③カテゴリー認知の向上 で考える", model:"①競合CMがカテゴリー自体への関心を高め潜在顧客が検討を始めた\n②比較検討の過程で自社製品の価格・品質優位性が発見された\n③競合の広告が『このカテゴリーは今アツい』というシグナルとして機能した"},
+      { q:"ECサイトで商品説明を長くすると購入率が上がるカテゴリと下がるカテゴリがある。なぜか？", hint:"①関与度（高/低）　②購買プロセスの違い　③リスク知覚 で考える", model:"①高関与商品（家電・保険）は情報量で不安を解消、低関与商品は逆に悩ませる\n②衝動買い系カテゴリでは長文が購買モメンタムを断ち切る\n③専門用語は信頼を高める場合と逆に敷居を上げる場合がある"},
+    ],
+    組織: [
+      { q:"優秀な人材ほど社内で評価されにくい傾向がある組織がある。なぜか？", hint:"①評価基準の問題　②上司との関係性　③組織の同調圧力 で考える", model:"①評価基準が『前例踏襲』や『波風を立てない』行動を優遇している\n②優秀な部下は上司の無能さを際立たせるため意識的・無意識的に低評価をつけられる\n③突出した成果よりチームへの調和が重視される文化的バイアスがある"},
+      { q:"リモートワーク導入後、中堅社員（入社3〜5年目）の離職率だけが上がった。なぜか？", hint:"①成長機会の違い　②帰属意識の形成　③横比較の増加 で考える", model:"①暗黙知・OJTの機会が激減し成長実感が得られなくなった\n②新人・ベテランに比べ会社への帰属意識が形成しきれていない時期に出社機会を失った\n③同世代との横比較機会が増え転職市場での自分の価値を再認識し行動に移りやすくなった"},
+      { q:"組織改編直後に、変化のなかった部署の生産性まで下がることがある。なぜか？", hint:"①組織不安の伝播　②非公式ネットワークの破壊　③管理職の注意散漫 で考える", model:"①『次は自分たちか』という不安が全社に広がり心理的安全性が低下する\n②長年機能していた部署横断の非公式人脈が断絶し情報流通が滞る\n③管理職が改編対応に忙殺され既存部署のマネジメントが手薄になる"},
+      { q:"コンサル出身者を採用すると最初の6ヶ月は活躍するが1年後に評価が下がる事例が多い。なぜか？", hint:"①スキルセットのギャップ　②文化の摩擦　③成果の時間軸の違い で考える", model:"①フレームワークと提案は得意だが社内政治・根回し・実行フェーズに不慣れ\n②結果にこだわりすぎてプロセスや関係性を重視する既存文化と衝突する\n③コンサル流の『短期成果』志向と事業会社の『長期育成・関係構築』志向がずれる"},
+    ],
+    市場: [
+      { q:"日本のコーヒー市場全体は縮小しているのに、カフェだけが増え続けている。なぜか？", hint:"①サードプレイス需要　②単価・粗利構造　③SNS集客の容易さ で考える", model:"①在宅ワーク・孤独化の進行で『家でも職場でもない場所』への需要が拡大\n②コーヒー1杯の原価率は低く、小規模でも利益を出せる参入しやすいモデル\n③インスタ映えを中心にSNS集客が可能で広告費ほぼゼロで認知獲得できる"},
+      { q:"電気自動車（EV）の販売台数が増えているのに、ガソリンスタンドの閉店数も増えている。これは当然か？想定外の要因は何か？", hint:"①需要サイドの変化速度　②供給サイドの構造問題　③地域格差 で考える", model:"①EVの普及はまだ一部だが閉店の主因はEVより後継者不在と老朽化\n②EV普及への不安から新投資を控えるオーナーが増え自然減が加速\n③都市部のスタンド減少がEV移行をさらに後押しする自己強化ループが生まれている"},
+      { q:"少子化が進むにもかかわらず、子ども向け習い事市場が拡大している。なぜか？", hint:"①1人あたり消費単価　②親世代の価値観変化　③共働き家庭の増加 で考える", model:"①子どもの数は減っても1人あたりにかける教育費が増加（小皇帝化）\n②共働き家庭の増加で放課後の安全な預かり先としての需要が増大\n③グローバル競争への親の焦りが英語・プログラミング等の単価を押し上げ"},
+      { q:"国内市場が飽和した大企業が海外進出するが、現地中小企業に負けるケースが多い。なぜか？", hint:"①意思決定スピード　②現地化のコスト　③本社の呪縛 で考える", model:"①大企業は本社承認プロセスが長く現地の変化に即応できない\n②現地の文化・商習慣・人脈に根ざした中小企業の優位性を過小評価している\n③日本で成功した製品をそのまま持ち込む『輸出モデル』が現地ニーズと乖離する"},
+    ],
+  },
+  ai: {
+    提案: [
+      { q:"来週、製造業クライアント（従業員300名）へDX推進の初回提案を行う。1時間の枠で経営課題を引き出しつつ自社サービスの優位性を伝えたい。Claudeを使って提案資料の骨子を作りたい。", hint:"役割：業界専門家として指定 ／ 制約：相手の業種・規模を与える ／ 出力：スライド構成とヒアリング質問リスト", model:"【役割】あなたは製造業DXの専門コンサルタントです。\n【背景】クライアント：従業員300名の部品メーカー。DXに興味はあるが何から始めればいいか不明な状態。\n【タスク】初回提案（60分）の構成案を作成してください。\n【制約】押し売り感を出さない。相手の課題を引き出すヒアリング質問を5つ含める。自社サービス紹介は全体の20%以内。\n【出力】タイムライン付きアジェンダ、各パートの目的と話すポイント"},
+      { q:"社内で新しいAIツール導入を経営層に稟議提案する資料を作りたい。反対意見（セキュリティリスク・コスト・学習コスト）を先回りして潰す構成にしたい。", hint:"役割：CFO視点の批判的レビュアーとして指定 ／ 制約：反論ごとにカウンター論拠 ／ 出力：稟議書フォーマット", model:"【役割】あなたはROIとリスクに厳しいCFOです。\n【タスク】以下の稟議内容を見て、承認しない理由を10個列挙してください。\n【稟議内容】〇〇AIツール（月額30万円）を全社導入し、資料作成工数を月200時間削減する。\n【出力】反対理由リスト → それぞれへの反論と証拠の候補\n（このアウトプットを元に稟議書を修正します）"},
+    ],
+    分析: [
+      { q:"先月の営業成績データを見ると、A支店だけ受注率が他の支店より15%低い。上司から今週中に原因分析と改善策を求められた。Claudeを使って分析を進めたい。", hint:"役割：データアナリスト ／ 制約：因果関係と相関の区別 ／ 出力：仮説リストと検証方法", model:"【役割】あなたは営業データ分析の専門家です。\n【状況】A支店の受注率が他支店より15%低い。利用可能データ：月次売上・商談数・担当者別実績・商材別構成。\n【タスク】受注率低下の原因仮説を5つ立て、各仮説を検証するために見るべきデータと指標を教えてください。\n【制約】相関と因果を明確に区別する。すぐ確認できる仮説を優先する。\n【出力】仮説 ／ 検証方法 ／ 必要データ の表形式"},
+      { q:"競合他社3社のサービス紹介ページを比較して、自社が差別化できていない点と強みを整理したい。Claudeに比較分析させたい。", hint:"役割：マーケ戦略アナリスト ／ 制約：主観でなくページ上の根拠から ／ 出力：比較表＋示唆", model:"【役割】あなたはB2Bマーケティング戦略の専門家です。\n【タスク】以下の3社のサービスページを比較分析してください。\n【比較軸】①ターゲット顧客の設定 ②訴求メッセージ ③差別化ポイント ④CTAの設計\n【制約】主観でなくページ上の具体的な記述を根拠にすること。\n【出力形式】比較表（縦：比較軸、横：各社）→ 自社が強化すべき点3つ"},
+    ],
+    交渉: [
+      { q:"取引先ベンダーとの価格交渉がある。相手は15%値上げを求めているが、こちらは5%以内に抑えたい。Claudeに交渉シミュレーションをさせたい。", hint:"役割：相手のベンダー担当者として演じさせる ／ 制約：現実的な反論をさせる ／ 出力：ロールプレイ＋フィードバック", model:"【役割】あなたは15%値上げ交渉に来たベンダー企業の営業部長です。原材料費20%増加を理由にしています。\n【制約】リアルな反論と譲歩ラインを持つ。私が提示する代替案に現実的に反応する。\n【スタート】私が「今回の値上げ率について相談があります」と切り出したところから始めてください。\n※終了後、交渉のポイントと私の改善点をフィードバックしてください。"},
+      { q:"社内の他部署との予算調整が難航している。相手部署は非協力的。メールで説得する文章をClaude に書かせたい。", hint:"役割：社内組織コンサルタント ／ 制約：相手のメリットを先に考慮 ／ 出力：メール文面＋送付戦略", model:"【役割】あなたは社内の人間関係と政治力学に詳しい組織コンサルタントです。\n【状況】マーケ部門が営業部門に対し来期予算の一部融通を依頼するメールを書きたい。過去に一度断られている。\n【制約】命令・お願いトーンを避け相手のメリットを先に提示する。Win-Winのフレーミングにする。\n【出力】件名＋本文（300字以内）→ なぜこの書き方が効果的かの解説"},
+    ],
+    報告: [
+      { q:"3ヶ月のプロジェクトが終わった。成果は目標の80%達成。残り20%未達の理由を経営層に報告しないといけない。言い訳にならず次の提案につなげる報告書をClaude に構成させたい。", hint:"役割：経営者視点のレビュアー ／ 制約：課題の本質を正直に書く ／ 出力：報告書骨子＋リライト案", model:"【役割】あなたは成果に厳しい事業部長です。\n【タスク】以下の報告書案の ①言い訳に聞こえる箇所 ②具体性が不足している箇所 ③次の提案として何が必要か を指摘してください。\n【報告内容】目標100件に対し80件達成。未達要因は市場環境の変化と人員不足。\n【出力】改善コメント付きの報告書リライト案"},
+      { q:"週次の進捗報告を上司に送る。上司はデータより直感で判断するタイプ。数字を並べるより『意思決定を促す』報告にしたい。Claudeに変換させたい。", hint:"役割：エグゼクティブコミュニケーション専門家 ／ 制約：30秒で判断できる量 ／ 出力：変換後の報告文＋解説", model:"【役割】あなたはエグゼクティブへの報告に特化したコミュニケーション専門家です。\n【タスク】以下のデータを意思決定者が30秒で判断できる報告に変換してください。\n【元データ】訪問件数42件（目標50件）、提案数15件、受注2件\n【制約】数字より『何を決めてほしいか』を先に書く。全体200字以内。グラフなし。\n【出力】変換後の報告文 ＋ なぜこの構成にしたかの解説"},
+    ],
+  },
+};
+
+// ── State ──
+let hyp = { cat:'ビジネス', idx:-1, timerID:null, t:90 };
+let ai  = { cat:'提案', idx:-1 };
+
+// ── Tab ──
+function switchTab(name) {
+  ['hypothesis','ai','history'].forEach((t,i) => {
+    document.querySelectorAll('.tab')[i].classList.toggle('active', t===name);
+    document.getElementById('section-'+t).classList.toggle('active', t===name);
+  });
+  if (name==='history') renderHistory();
+}
+
+// ── Chip ──
+function selectChip(el, prefix, cat) {
+  el.closest('.chips').querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  if (prefix==='hyp') hyp.cat=cat; else ai.cat=cat;
+}
+
+// ── Streak ──
+function updateStreak() {
+  try {
+    const today=new Date().toDateString();
+    let d=JSON.parse(localStorage.getItem('dojo-streak')||'{"count":0,"last":""}');
+    if (d.last===today){document.getElementById('streak-display').textContent=d.count+'日';return;}
+    d.count = d.last===new Date(Date.now()-86400000).toDateString() ? d.count+1 : 1;
+    d.last=today;
+    localStorage.setItem('dojo-streak',JSON.stringify(d));
+    document.getElementById('streak-display').textContent=d.count+'日';
+  }catch(e){}
+}
+
+// ── 仮説思考 ──
+function getHypQuestion() {
+  clearInterval(hyp.timerID);
+  const pool=BANK.hyp[hyp.cat];
+  let n=Math.floor(Math.random()*pool.length);
+  while(pool.length>1&&n===hyp.idx) n=Math.floor(Math.random()*pool.length);
+  hyp.idx=n;
+  const item=pool[n];
+  const qEl=document.getElementById('hyp-question');
+  qEl.className='question-box';
+  qEl.textContent=item.q;
+  document.getElementById('hyp-answer').value='';
+  document.getElementById('hyp-answer').disabled=false;
+  document.getElementById('hyp-hint').classList.remove('visible');
+  document.getElementById('hyp-hint-text').textContent=item.hint;
+  document.getElementById('hyp-feedback').classList.remove('visible');
+  document.getElementById('hyp-timer-row').style.display='flex';
+  document.getElementById('hyp-timer-btn').disabled=false;
+  document.getElementById('hyp-hint-btn').disabled=false;
+  document.getElementById('hyp-submit-btn').disabled=false;
+  document.getElementById('hyp-counter').textContent=`問題 ${n+1}/${pool.length}`;
+  resetTimer();
+}
+
+function resetTimer() {
+  hyp.t=90;
+  updateTimerDisp();
+}
+function updateTimerDisp() {
+  const el=document.getElementById('hyp-timer');
+  el.textContent=String(Math.floor(hyp.t/60)).padStart(2,'0')+':'+String(hyp.t%60).padStart(2,'0');
+  el.className='timer'+(hyp.t<=20?' warning':'');
+  document.getElementById('hyp-progress').style.width=(hyp.t/90*100)+'%';
+}
+function startTimer() {
+  clearInterval(hyp.timerID);
+  hyp.timerID=setInterval(()=>{
+    hyp.t--;
+    updateTimerDisp();
+    if(hyp.t<=0){clearInterval(hyp.timerID);document.getElementById('hyp-timer').textContent='終了！';}
+  },1000);
+}
+
+function toggleHint(id) { document.getElementById(id).classList.toggle('visible'); }
+
+function submitHyp() {
+  const ans=document.getElementById('hyp-answer').value.trim();
+  if(!ans){alert('回答を入力してください');return;}
+  if(hyp.idx<0){alert('先に「例題を出す」を押してください');return;}
+  const item=BANK.hyp[hyp.cat][hyp.idx];
+  if(!item){alert('例題を再度取得してください');return;}
+  const lines=ans.split('\n').filter(l=>l.trim().length>5);
+  const cnt=lines.length;
+  const hasReason=/なぜ|ため|から|による|影響|結果/.test(ans);
+  const hasDetail=ans.length>80;
+  const diversity=cnt>=3?3:cnt>=2?2:1;
+  const specificity=hasDetail?(hasReason?3:2):1;
+  const depth=(hasReason&&hasDetail)?(cnt>=3?3:2):1;
+  const stars=n=>'★'.repeat(n)+'☆'.repeat(3-n);
+  let fb='';
+  if(cnt<2) fb='仮説が1つだけです。「顧客視点」「競合視点」「内部要因」など視点を変えると仮説が増えます。';
+  else if(!hasReason) fb=`${cnt}つ書けています。次は「なぜそうなるか」の根拠を添えましょう。「〜だから〜」という因果を意識すると仮説の質が上がります。`;
+  else if(cnt>=3&&hasReason) fb=`${cnt}つの仮説に根拠が伴っています。さらに成長するには「検証方法」まで考える習慣をつけましょう。`;
+  else fb=`${cnt}つの仮説に根拠も含まれています。全く異なる視点の仮説をもう一つ加えると思考の幅が広がります。`;
+  document.getElementById('hyp-fb-text').textContent=fb;
+  document.getElementById('hyp-rubric').innerHTML=`
+    <div class="rubric-item"><div class="rubric-label">多様性</div><div class="rubric-stars">${stars(diversity)}</div></div>
+    <div class="rubric-item"><div class="rubric-label">具体性</div><div class="rubric-stars">${stars(specificity)}</div></div>
+    <div class="rubric-item"><div class="rubric-label">洞察の深さ</div><div class="rubric-stars">${stars(depth)}</div></div>`;
+  document.getElementById('hyp-model-text').innerHTML=item.model.replace(/\n/g,'<br>');
+  const fbEl=document.getElementById('hyp-feedback');
+  fbEl.classList.remove('visible');
+  void fbEl.offsetWidth; // force reflow
+  fbEl.classList.add('visible');
+  fbEl.scrollIntoView({behavior:'smooth',block:'nearest'});
+  saveHistory('仮説思考',item.q,ans);
+  updateStreak();
+}
+
+// ── AI活用 ──
+function getAiQuestion() {
+  const pool=BANK.ai[ai.cat];
+  let n=Math.floor(Math.random()*pool.length);
+  while(pool.length>1&&n===ai.idx) n=Math.floor(Math.random()*pool.length);
+  ai.idx=n;
+  const item=pool[n];
+  const qEl=document.getElementById('ai-question');
+  qEl.className='question-box';
+  qEl.textContent=item.q;
+  document.getElementById('ai-answer').value='';
+  document.getElementById('ai-answer').disabled=false;
+  document.getElementById('ai-hint').classList.remove('visible');
+  document.getElementById('ai-hint-text').innerHTML=item.hint.split(' ／ ').map(h=>`<div style="margin-bottom:6px">▸ ${h}</div>`).join('');
+  document.getElementById('ai-feedback').classList.remove('visible');
+  document.getElementById('ai-hint-btn').disabled=false;
+  document.getElementById('ai-submit-btn').disabled=false;
+  document.getElementById('ai-counter').textContent=`問題 ${n+1}/${pool.length}`;
+}
+
+function submitAi() {
+  const ans=document.getElementById('ai-answer').value.trim();
+  if(!ans){alert('プロンプトを入力してください');return;}
+  if(ai.idx<0){alert('先に「シナリオを出す」を押してください');return;}
+  const item=BANK.ai[ai.cat][ai.idx];
+  if(!item){alert('シナリオを再度取得してください');return;}
+  const hasRole=/役割|あなたは|専門家|として|プロ/.test(ans);
+  const hasConstraint=/制約|条件|のみ|禁止|以内|以上|使わ|避け/.test(ans);
+  const hasFormat=/形式|出力|フォーマット|箇条書き|表|一覧|文字|字以内/.test(ans);
+  const r=n=>'★'.repeat(n)+'☆'.repeat(3-n);
+  const rs=hasRole?3:(ans.includes('専門')?2:1);
+  const cs=hasConstraint?3:(ans.length>60?2:1);
+  const fs=hasFormat?3:1;
+  let fb='';
+  if(!hasRole) fb='役割の指定が不足しています。最初に「あなたは〇〇の専門家です」と明示するだけで出力の質が大きく変わります。';
+  else if(!hasFormat) fb='役割は指定できています。次は「出力形式」を具体的に指定しましょう（例：箇条書き3点、表形式、200字以内）。';
+  else if(!hasConstraint) fb='役割と形式が揃っています。「押し売り感を出さない」「専門用語を避ける」など制約条件を加えると精度がさらに上がります。';
+  else fb='役割・制約・出力形式の3要素が揃っています。実際にClaudeに投げてみて、結果を見ながらチューニングしてみましょう。';
+  document.getElementById('ai-fb-text').textContent=fb;
+  document.getElementById('ai-rubric').innerHTML=`
+    <div class="rubric-item"><div class="rubric-label">役割設定</div><div class="rubric-stars">${r(rs)}</div></div>
+    <div class="rubric-item"><div class="rubric-label">制約の明確さ</div><div class="rubric-stars">${r(cs)}</div></div>
+    <div class="rubric-item"><div class="rubric-label">出力形式</div><div class="rubric-stars">${r(fs)}</div></div>`;
+  document.getElementById('ai-model-text').innerHTML=item.model.replace(/\n/g,'<br>');
+  const fbEl=document.getElementById('ai-feedback');
+  fbEl.classList.remove('visible');
+  void fbEl.offsetWidth;
+  fbEl.classList.add('visible');
+  fbEl.scrollIntoView({behavior:'smooth',block:'nearest'});
+  saveHistory('AI活用',item.q,ans);
+  updateStreak();
+}
+
+// ── History ──
+function saveHistory(type,q,a) {
+  try {
+    const list=JSON.parse(localStorage.getItem('dojo-history')||'[]');
+    list.unshift({type,date:new Date().toLocaleDateString('ja-JP'),q:q.slice(0,80),a:a.slice(0,120)});
+    if(list.length>40)list.pop();
+    localStorage.setItem('dojo-history',JSON.stringify(list));
+  }catch(e){}
+}
+function renderHistory() {
+  const el=document.getElementById('history-list');
+  try {
+    const list=JSON.parse(localStorage.getItem('dojo-history')||'[]');
+    if(!list.length){el.innerHTML='<div class="empty">📭 まだ履歴がありません。例題を解いてみましょう！</div>';return;}
+    el.innerHTML=list.map(d=>`
+      <div class="history-item">
+        <div class="history-meta"><span>${d.date}</span><span>${d.type}</span></div>
+        <div class="history-q">Q: ${d.q}${d.q.length>=80?'…':''}</div>
+        <div class="history-a">${d.a}${d.a.length>=120?'…':''}</div>
+      </div>`).join('');
+  }catch(e){el.innerHTML='<div class="empty">履歴を読み込めませんでした</div>';}
+}
+
+updateStreak();
+</script>
+
+</body>
+</html>
