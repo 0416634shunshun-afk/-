@@ -91,11 +91,36 @@ class Material:
         return self.ext.lower() in VECTOR_EXTS
 
 
+def parse_pages(spec: str | None, total: int) -> list[int]:
+    """"21-34" や "1,5,10-12" のような指定を、0始まりのページ番号の並びにする。"""
+    if not spec:
+        return list(range(total))
+    out: list[int] = []
+    for part in spec.replace(" ", "").split(","):
+        if not part:
+            continue
+        if "-" in part:
+            a, b = part.split("-", 1)
+            lo = int(a) if a else 1
+            hi = int(b) if b else total
+        else:
+            lo = hi = int(part)
+        for n in range(lo, hi + 1):
+            if 1 <= n <= total and (n - 1) not in out:
+                out.append(n - 1)
+    if not out:
+        raise SystemExit(f"--pages '{spec}' に該当するページがありません（全{total}ページ）")
+    return out
+
+
 class Builder:
     def __init__(self, args):
         self.args = args
         self.out = Path(args.out)
         self.doc = pymupdf.open(args.pdf)
+        # 誌面の一部だけを切り出して作れるようにする（元カタログの章単位で配るケース）。
+        # self.page_indices[i] = ビューアのi番目に対応する、PDF内の0始まりページ番号。
+        self.page_indices = parse_pages(args.pages, len(self.doc))
         self.scale = args.dpi / 72.0
         self.materials: list[Material] = []
         self.by_key: dict[str, Material] = {}
@@ -127,21 +152,22 @@ class Builder:
 
     # ---------- 素材の収集 ----------
     def collect(self):
-        for pno, page in enumerate(self.doc):
+        for pos, src_pno in enumerate(self.page_indices):
+            page = self.doc[src_pno]
             for order, info in enumerate(page.get_images(full=True), start=1):
                 xref, smask = info[0], info[1]
                 rects = page.get_image_rects(xref)
                 if not rects:
                     continue
-                m = self._material_for(xref, smask, pno, order)
+                m = self._material_for(xref, smask, src_pno, order)
                 if m is None:
                     continue
-                if pno not in m.pages:
-                    m.pages.append(pno)
+                if pos not in m.pages:
+                    m.pages.append(pos)
                 for r in rects:
-                    m.placements.append((pno, r))
+                    m.placements.append((pos, r))
 
-        if self.assets_dir:
+        if self.assets_dir and self.args.include_unplaced:
             self._collect_unplaced_assets()
 
     def _material_for(self, xref: int, smask: int, pno: int, order: int) -> Material | None:
@@ -219,26 +245,30 @@ class Builder:
         pages_dir = self.out / "pages"
         pages_dir.mkdir(parents=True, exist_ok=True)
         pages: list[dict] = []
-        for pno, page in enumerate(self.doc):
+        n_total = len(self.page_indices)
+        for pos, src_pno in enumerate(self.page_indices):
+            page = self.doc[src_pno]
             pm = page.get_pixmap(matrix=pymupdf.Matrix(self.scale, self.scale), alpha=False)
             img = Image.frombytes("RGB", (pm.width, pm.height), pm.samples)
-            rel = f"pages/page-{pno + 1:02d}.jpg"
+            rel = f"pages/page-{src_pno + 1:03d}.jpg"
             img.save(self.out / rel, "JPEG", quality=self.args.jpeg_quality, optimize=True)
             pages.append({
-                "label": self.args.page_label.format(n=pno + 1),
+                # ラベルは元PDFのページ番号。抜粋して作っても、誌面の実ページと
+                # 突き合わせられるようにするため。
+                "label": self.args.page_label.format(n=src_pno + 1 + self.args.page_offset),
                 "src": rel,
-                "map": self._hitmap_uri(pno, pm.width, pm.height),
+                "map": self._hitmap_uri(pos, pm.width, pm.height),
                 "mapW": pm.width, "mapH": pm.height,
                 "text": self._page_text(page),
             })
-            print(f"  ページ {pno + 1}/{len(self.doc)} 書き出し ({pm.width}x{pm.height})")
+            print(f"  ページ {pos + 1}/{n_total}（元PDF p.{src_pno + 1}）書き出し ({pm.width}x{pm.height})")
         return pages
 
-    def _hitmap_uri(self, pno: int, w: int, h: int) -> str:
+    def _hitmap_uri(self, pos: int, w: int, h: int) -> str:
         """R+(G<<8)=素材ID の当たり判定マップを作り、data URIとして返す。"""
         buf = np.zeros((h, w, 3), dtype=np.uint8)
         # 大きい配置から先に塗り、小さい配置を上に重ねる（小さいものが埋もれないように）
-        items = [(m, r) for m in self.materials for (p, r) in m.placements if p == pno]
+        items = [(m, r) for m in self.materials for (p, r) in m.placements if p == pos]
         items.sort(key=lambda t: abs(t[1].get_area()), reverse=True)
         for m, rect in items:
             x0 = max(0, int(rect.x0 * self.scale))
@@ -359,8 +389,7 @@ class Builder:
         return im
 
     def spreads(self) -> list[dict]:
-        n = len(self.doc)
-        idx = list(range(n))
+        idx = list(range(len(self.page_indices)))
         out = []
         if self.args.cover:               # 表紙を単独ページとして扱う
             out.append({"l": None, "r": 0})
@@ -418,7 +447,9 @@ class Builder:
 
     def run(self):
         self.out.mkdir(parents=True, exist_ok=True)
-        print(f"PDF: {self.args.pdf}（{len(self.doc)}ページ）")
+        sel = len(self.page_indices)
+        rng = "" if sel == len(self.doc) else f" → {sel}ページを抜粋（元PDF p.{self.page_indices[0] + 1}〜p.{self.page_indices[-1] + 1}）"
+        print(f"PDF: {self.args.pdf}（全{len(self.doc)}ページ）{rng}")
         self.collect()
         print(f"素材 {len(self.materials)} 点を検出")
         pages = self.render_pages()
@@ -445,8 +476,13 @@ def main():
     ap.add_argument("--links", help="リンク一覧CSV（列: page,order,filename／1始まり）")
     ap.add_argument("--dpi", type=int, default=150, help="誌面画像の解像度（既定150）")
     ap.add_argument("--jpeg-quality", type=int, default=82, help="誌面画像のJPEG品質（既定82）")
-    ap.add_argument("--cover", action="store_true", help="1ページ目を表紙（単独ページ）として扱う")
-    ap.add_argument("--page-label", default="P.{n}", help="ページ表示名の書式（既定 'P.{n}'）")
+    ap.add_argument("--pages", help="作る範囲。例 '21-34' や '1,5,10-12'（元PDFのページ番号・1始まり）")
+    ap.add_argument("--cover", action="store_true", help="先頭ページを表紙（単独ページ）として扱う")
+    ap.add_argument("--page-label", default="P.{n}", help="ページ表示名の書式。{n}は元PDFのページ番号（既定 'P.{n}'）")
+    ap.add_argument("--page-offset", type=int, default=0,
+                    help="ページ表示名の番号のズレ補正。誌面のノンブルとPDFのページ番号が違うときに指定")
+    ap.add_argument("--include-unplaced", action="store_true",
+                    help="原本フォルダにあるが誌面に配置されていないファイルも一覧に載せる")
     ap.add_argument("--template", default=str(Path(__file__).with_name("viewer_template.html")),
                     help="ビューアのテンプレートHTML")
     args = ap.parse_args()
