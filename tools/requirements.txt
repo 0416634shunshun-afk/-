@@ -1,0 +1,5 @@
+# 誌面ビューア生成ツールの依存パッケージ
+#   pip install -r tools/requirements.txt
+pymupdf>=1.24
+pillow>=10.0
+numpy>=1.24

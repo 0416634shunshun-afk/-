@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>__TITLE__</title>
+<style>
+  :root {
+    --brand:#0066CC; --accent:#00D000; --navy:#0D2B6B;
+    --bg:#F4F6FA; --line:#DCE3EF; --text:#1A1A2E; --muted:#6B7280;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);line-height:1.6;
+    font-family:"Helvetica Neue","Hiragino Sans","Meiryo",sans-serif}
+  header{background:var(--navy);color:#fff;padding:16px 24px;display:flex;
+    align-items:baseline;gap:16px;flex-wrap:wrap;position:sticky;top:0;z-index:20}
+  header h1{font-size:17px;margin:0}
+  header .sub{font-size:13px;opacity:.75}
+  header .frametoggle{margin-left:auto;display:flex;align-items:center;gap:6px;
+    font-size:12px;cursor:pointer;user-select:none;white-space:nowrap}
+  header .frametoggle input{cursor:pointer}
+  .wrap{max-width:1500px;margin:0 auto;padding:20px;display:grid;
+    grid-template-columns:minmax(0,1fr) 400px;gap:20px;align-items:start}
+  @media(max-width:1040px){.wrap{grid-template-columns:1fr}}
+  .card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:18px}
+  .card h2{font-size:14px;margin:0 0 4px;color:var(--navy)}
+  .card .hint{font-size:12px;color:var(--muted);margin:0 0 14px}
+
+  /* ---- めくれるビューア ---- */
+  .viewer{display:flex;align-items:center;gap:8px}
+  .nav{flex:0 0 auto;width:42px;height:72px;border:1px solid var(--line);
+    background:#fff;border-radius:8px;cursor:pointer;font-size:26px;color:var(--navy);
+    line-height:1;transition:background .1s}
+  .nav:hover:not(:disabled){background:#EEF4FF}
+  .nav:disabled{opacity:.28;cursor:default}
+  .book{position:relative;flex:1 1 auto;display:flex;perspective:2200px;
+    background:#fff;border-radius:4px}
+  .pane{position:relative;flex:1 1 0;aspect-ratio:__ASPECT__;line-height:0;background:#fff}
+  .pane img.sheet{width:100%;height:100%;object-fit:contain;display:block;
+    border:1px solid var(--line)}
+  .pane.blank img.sheet{visibility:hidden}
+  .pane canvas.hl{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+  .pane .hit{position:absolute;inset:0}
+  .pane .hit.pick{cursor:pointer}
+  .pane .tip{position:absolute;background:var(--navy);color:#fff;font-size:11px;
+    line-height:1.45;padding:6px 9px;border-radius:4px;white-space:nowrap;
+    pointer-events:none;opacity:0;transition:opacity .1s;z-index:7;
+    transform:translate(-50%,-115%)}
+  .pane .tip.on{opacity:1}
+  .pane .tip b{color:#7FE07F}
+  .leaf{position:absolute;top:0;width:50%;height:100%;transform-style:preserve-3d;
+    transition:transform .6s cubic-bezier(.32,.03,.28,1);z-index:9;
+    pointer-events:none;display:none}
+  .leaf .face{position:absolute;inset:0;backface-visibility:hidden;
+    background-size:100% 100%;background-repeat:no-repeat;background-color:#fff;
+    border:1px solid var(--line);box-shadow:0 0 22px rgba(0,0,0,.22)}
+  .leaf .back{transform:rotateY(180deg)}
+  .pagebar{display:flex;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap}
+  .pagebar input[type=range]{flex:1 1 180px;accent-color:var(--brand)}
+  .legend{font-size:12px;color:var(--muted)}
+  .pagejump{display:flex;align-items:center;gap:6px;margin-left:auto}
+  .pagejump input[type=number]{width:64px;padding:5px 7px;font-size:12px;
+    border:1px solid var(--line);border-radius:6px;font-family:inherit}
+  .pagejump input[type=number]:focus{outline:2px solid var(--brand);outline-offset:-1px}
+  .pagejump button{font:inherit;font-size:12px;font-weight:700;padding:5px 11px;
+    border-radius:6px;border:1px solid var(--brand);background:var(--brand);color:#fff;cursor:pointer}
+  .pagejump button:hover{background:#0052A6}
+
+  /* ---- 素材一覧 ---- */
+  .search{width:100%;padding:9px 12px;font-size:13px;margin-bottom:6px;
+    border:1px solid var(--line);border-radius:6px;font-family:inherit}
+  .search:focus{outline:2px solid var(--brand);outline-offset:-1px}
+  .filters{display:flex;gap:6px;flex-wrap:wrap}
+  .filters button{font:inherit;font-size:11px;padding:3px 9px;border-radius:999px;
+    border:1px solid var(--line);background:#fff;cursor:pointer;color:var(--muted)}
+  .filters button.on{background:var(--navy);border-color:var(--navy);color:#fff}
+  .filterrow{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+  .filterrow:last-of-type{margin-bottom:12px}
+  .flabel{flex:0 0 auto;font-size:11px;color:var(--muted);width:26px}
+  /* 紙面(印刷されている文字)の検索結果 */
+  .pagehits{display:none;margin:0 0 10px}
+  .pagehits.show{display:block}
+  .pagehits h3{font-size:11px;margin:0 0 5px;color:var(--muted);font-weight:700}
+  .pagehits ul{list-style:none;margin:0;padding:0;max-height:150px;overflow-y:auto;
+    border:1px solid #F0D9B5;border-radius:6px;background:#FFFCF6}
+  .pagehits li{display:flex;gap:8px;align-items:baseline;padding:6px 9px;cursor:pointer;
+    border-top:1px solid #F5E7D0;font-size:12px}
+  .pagehits li:first-child{border-top:none}
+  .pagehits li:hover{background:#FFF1DC}
+  .pagehits .hitpg{flex:0 0 auto;font-size:10px;font-weight:700;background:#A85B00;
+    color:#fff;padding:1px 6px;border-radius:3px}
+  .pagehits .hittext{flex:1 1 auto;word-break:break-all}
+  .pagehits .hittext mark{background:#FFE08A;color:inherit;padding:0 1px;border-radius:2px}
+  ul.materials{list-style:none;margin:0;padding:0;max-height:70vh;overflow-y:auto}
+  ul.materials li{display:grid;grid-template-columns:20px 60px minmax(0,1fr) auto;gap:10px;
+    align-items:center;padding:9px 4px;border-top:1px solid var(--line);border-radius:6px}
+  ul.materials li:first-child{border-top:none}
+  ul.materials li.hot{background:#EEF4FF}
+  ul.materials li.picked{background:#E3F2E5;box-shadow:inset 3px 0 0 var(--accent)}
+  ul.materials li.clickable{cursor:pointer}
+  ul.materials li.empty{display:block;color:var(--muted);font-size:12px;padding:12px 6px;line-height:1.7}
+  ul.materials li input.sel{width:16px;height:16px;cursor:pointer}
+  ul.materials img{width:60px;height:46px;object-fit:contain;background:#F0F2F7;border-radius:4px}
+  .m-name{font-size:12px;font-weight:600;word-break:break-all;margin:0}
+  .m-meta{font-size:11px;color:var(--muted);margin:2px 0 0}
+  .badge{display:inline-block;font-size:10px;font-weight:700;padding:1px 6px;
+    border-radius:3px;margin-right:5px;background:#E8EEF9;color:var(--brand);text-transform:uppercase}
+  .badge.vec{background:#FFF1DC;color:#A85B00}
+  .pg{display:inline-block;font-size:10px;font-weight:700;background:#E9F7EC;
+    color:#1B7A32;padding:1px 5px;border-radius:3px;margin-left:4px;cursor:pointer}
+  .pg:hover{background:#1B7A32;color:#fff}
+  .dl{font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap;
+    background:var(--brand);color:#fff;padding:6px 12px;border-radius:6px}
+  .dl:hover{background:#0052A6}
+  .dlgroup{display:flex;flex-direction:column;gap:4px;align-items:stretch}
+  .dlgroup a{font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;
+    padding:4px 10px;border-radius:5px;text-align:center}
+  .dlgroup a.dl{padding:4px 10px}
+  .dlgroup a.dl-light{background:#FFF1DC;color:#A85B00;border:1px solid #F0D9B5}
+  .dlgroup a.dl-light:hover{background:#A85B00;color:#fff}
+  .bulkbar{display:none;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;
+    background:#EEF9EF;border:1px solid #BFE6C4;border-radius:6px;padding:8px 10px;font-size:12px}
+  .bulkbar.show{display:flex}
+  .bulkbar button{font:inherit;font-size:12px;font-weight:700;padding:5px 10px;
+    border-radius:6px;border:1px solid var(--brand);background:var(--brand);color:#fff;cursor:pointer}
+  .bulkbar button.secondary{background:#fff;color:var(--brand)}
+  .bulkbar button:disabled{opacity:.5;cursor:default}
+  .bulkbar button:hover:not(:disabled){opacity:.88}
+  .note{margin-top:14px;font-size:11.5px;color:var(--muted);background:#FAFBFE;
+    border:1px solid var(--line);border-radius:6px;padding:12px}
+  .note b{color:var(--text)}
+  #filenotice{display:none;background:#FFF4D6;border-bottom:2px solid #E8A33D;
+    color:#6B4A0B;font-size:12.5px;line-height:1.75;padding:11px 22px}
+  #filenotice.show{display:block}
+  #filenotice b{color:#8A3E00}
+  #diag{display:none;background:#B00020;color:#fff;font-size:13px;
+    padding:10px 20px;white-space:pre-wrap;line-height:1.6}
+</style>
+</head>
+<body>
+<header>
+  <h1>__TITLE__</h1>
+  <span class="sub" id="headerSub"></span>
+  <label class="frametoggle"><input type="checkbox" id="frameToggle"> 赤枠表示（DLできる箇所を常時表示）</label>
+</header>
+<div id="diag"></div>
+<div id="filenotice"><b>ダウンロードするには、同じフォルダにある「ツールを開く.bat」から起動してください。</b><br>
+今は index.html をフォルダから直接開いているため、ブラウザの安全上の制限で
+「画像の保存」「まとめてZIPダウンロード」が行えません（JPGはクリックしても保存されず表示されるだけになります）。
+「ツールを開く.bat」をダブルクリックすると、公開後のWebサイトと同じ状態で開き直され、すべてのダウンロードが正常に動作します。</div>
+
+<div class="wrap">
+  <section class="card">
+    <div class="viewer">
+      <button class="nav prev" aria-label="前のページ">&#8249;</button>
+      <div class="book" id="book">
+        <div class="pane left" id="paneL">
+          <img class="sheet" alt="" loading="lazy" decoding="async"><canvas class="hl"></canvas>
+          <div class="hit"></div><div class="tip"></div>
+        </div>
+        <div class="pane right" id="paneR">
+          <img class="sheet" alt="" loading="lazy" decoding="async"><canvas class="hl"></canvas>
+          <div class="hit"></div><div class="tip"></div>
+        </div>
+        <div class="leaf" id="leaf"><div class="face front"></div><div class="face back"></div></div>
+      </div>
+      <button class="nav next" aria-label="次のページ">&#8250;</button>
+    </div>
+    <div class="pagebar">
+      <input type="range" id="slider" min="0" value="0" step="1">
+      <span id="pginfo" class="legend"></span>
+      <form class="pagejump" id="pagejump">
+        <label for="pnum" class="legend">ページ</label>
+        <input type="number" id="pnum" min="1" step="1" inputmode="numeric" aria-label="ページ番号を指定して移動">
+        <button type="submit">移動</button>
+      </form>
+    </div>
+  </section>
+
+  <aside class="card">
+    <h2>素材一覧</h2>
+    <p class="hint">ファイル名に加えて<b>紙面に印刷されている文字も検索</b>できます（該当箇所が上に出るので、クリックするとそのページへ移動して場所が光ります）。行にカーソルを乗せると誌面上の位置が光り、行をクリックすると該当ページへ移動してハイライトが固定されます。左のチェックボックスで複数選択し、まとめてダウンロードできます。「元データ」は印刷に使った原本そのもの、「JPG」は画面表示・資料貼付用の軽量版です。</p>
+    <input class="search" id="q" type="search" placeholder="ファイル名・紙面の文字で検索" autocomplete="off">
+    <div class="pagehits" id="pagehits"></div>
+    <div class="filterrow">
+      <span class="flabel">範囲</span>
+      <div class="filters" id="filterScope">
+        <button type="button" data-scope="all" class="on">すべて</button>
+        <button type="button" data-scope="page">この見開き</button>
+      </div>
+    </div>
+    <div class="filterrow">
+      <span class="flabel">種類</span>
+      <div class="filters" id="filterType"></div>
+    </div>
+    <div class="bulkbar" id="bulkbar">
+      <span id="bulkCount"></span>
+      <button type="button" id="bulkDl">元データをまとめてDL</button>
+      <button type="button" id="bulkDlLight" class="secondary">軽量JPGをまとめてDL</button>
+      <button type="button" id="bulkClear" class="secondary">選択解除</button>
+    </div>
+    <ul class="materials" id="list"></ul>
+    <div class="note" id="note"></div>
+  </aside>
+</div>
+
+<script>
+/* =========================================================================
+   誌面ビューア + 素材ブラウザ
+   DATA は tools/build_catalog.py が生成して差し込む（下の1行）。
+   ========================================================================= */
+const DATA = __CATALOG_DATA__;
+
+/* ---------- 追加ライブラリなしでZIPを作る（無圧縮=storeのみ） ----------
+   同梱する素材はJPG/PSD等ですでに圧縮済みのため、storeでも実用上は困らない。
+   外部CDNに依存しないので、社内配布・オフラインでも確実に動く。 */
+const ZIP = (() => {
+  const TBL = (() => {
+    const t = new Uint32Array(256);
+    for (let n = 0; n < 256; n++) {
+      let c = n;
+      for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+      t[n] = c >>> 0;
+    }
+    return t;
+  })();
+  const crc32 = u8 => {
+    let c = 0xFFFFFFFF;
+    for (let i = 0; i < u8.length; i++) c = TBL[(c ^ u8[i]) & 0xFF] ^ (c >>> 8);
+    return (c ^ 0xFFFFFFFF) >>> 0;
+  };
+  const dosTime = d => ((d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1)) & 0xFFFF;
+  const dosDate = d => (((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate()) & 0xFFFF;
+
+  // files: [{name, data:Uint8Array}] → Blob
+  function build(files) {
+    const enc = new TextEncoder(), parts = [], central = [], now = new Date();
+    const t = dosTime(now), dt = dosDate(now);
+    let offset = 0;
+    for (const f of files) {
+      const nameB = enc.encode(f.name), crc = crc32(f.data), size = f.data.length;
+      const h = new DataView(new ArrayBuffer(30));
+      h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true);
+      h.setUint16(6, 0x0800, true);              // ファイル名はUTF-8
+      h.setUint16(8, 0, true);                   // 0 = 無圧縮(store)
+      h.setUint16(10, t, true); h.setUint16(12, dt, true);
+      h.setUint32(14, crc, true); h.setUint32(18, size, true); h.setUint32(22, size, true);
+      h.setUint16(26, nameB.length, true); h.setUint16(28, 0, true);
+      parts.push(new Uint8Array(h.buffer), nameB, f.data);
+      central.push({ nameB, crc, size, offset });
+      offset += 30 + nameB.length + size;
+    }
+    const cdStart = offset;
+    let cdSize = 0;
+    for (const c of central) {
+      const h = new DataView(new ArrayBuffer(46));
+      h.setUint32(0, 0x02014b50, true); h.setUint16(4, 20, true); h.setUint16(6, 20, true);
+      h.setUint16(8, 0x0800, true); h.setUint16(10, 0, true);
+      h.setUint16(12, t, true); h.setUint16(14, dt, true);
+      h.setUint32(16, c.crc, true); h.setUint32(20, c.size, true); h.setUint32(24, c.size, true);
+      h.setUint16(28, c.nameB.length, true); h.setUint16(30, 0, true); h.setUint16(32, 0, true);
+      h.setUint16(34, 0, true); h.setUint16(36, 0, true); h.setUint32(38, 0, true);
+      h.setUint32(42, c.offset, true);
+      parts.push(new Uint8Array(h.buffer), c.nameB);
+      cdSize += 46 + c.nameB.length;
+    }
+    const e = new DataView(new ArrayBuffer(22));
+    e.setUint32(0, 0x06054b50, true); e.setUint16(4, 0, true); e.setUint16(6, 0, true);
+    e.setUint16(8, central.length, true); e.setUint16(10, central.length, true);
+    e.setUint32(12, cdSize, true); e.setUint32(16, cdStart, true); e.setUint16(20, 0, true);
+    parts.push(new Uint8Array(e.buffer));
+    return new Blob(parts, { type: 'application/zip' });
+  }
+  return { build };
+})();
+
+const byId = new Map(DATA.materials.map(m => [m.id, m]));
+const SPREADS = DATA.spreads;
+let curSpread = 0, filterScope = 'all', filterType = 'all',
+    locked = null, animating = false, pickedId = null, pinnedId = null;
+const selectedIds = new Set();
+// 紙面検索でヒットした箇所 { page: ページ番号, boxes: [[x0,y0,x1,y1], ...] }
+let textHit = null;
+
+function download(asset, name) {
+  const a = document.createElement('a');
+  a.href = asset; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+// フォルダから直接開いた状態(file://)かどうか。
+// この状態のブラウザは、セキュリティ上の制限により
+//   ・download属性を無視する(=画像は保存されず、ただ表示されるだけになる)
+//   ・fetch/XHR/canvasでの読み出しを一切許可しない(=まとめてZIP化もできない)
+// ため、ダウンロード機能を正しく動かすにはHTTPで配信する必要がある。
+// 同梱の「ツールを開く.bat」がその配信を行う。
+const IS_FILE_PROTOCOL = location.protocol === 'file:';
+const DISPLAYABLE_RE = /\.(jpe?g|png|gif|bmp|webp|svg)$/i;
+
+// download属性は、環境によっては無視されて「ダウンロードされずブラウザ上で開くだけ」に
+// なることがある。一度データとして取得してからBlobとして保存させることで、
+// 確実にファイルとしてダウンロードされるようにする。
+async function forceDownload(url, filename) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const blob = await res.blob();
+    const objUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = objUrl; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(objUrl), 15000);
+    return true;
+  } catch (e) {
+    // file:// で、かつブラウザが表示できる形式(JPG等)の場合、
+    // 通常のリンク動作では「保存されず今のページが画像に置き換わる」だけになり、
+    // 見ていたページまで失ってしまう。別タブで開いて案内を出す。
+    if (IS_FILE_PROTOCOL && DISPLAYABLE_RE.test(url)) {
+      showFileProtocolNotice();
+      window.open(url, '_blank');
+      return false;
+    }
+    download(url, filename);
+    return false;
+  }
+}
+
+function showFileProtocolNotice() {
+  const el = document.getElementById('filenotice');
+  if (el) el.classList.add('show');
+}
+
+// 紙面クリック・一覧クリックのどちらから行っても、同じ「選択」状態に収束させる。
+// 一覧側から選ぶ場合(jumpToPage)は、その素材が今表示中の見開きに無ければ
+// 該当ページまで自動でめくり、ハイライトを固定表示にする(=反転選択)。
+function selectMaterial(id, opts) {
+  opts = opts || {};
+  const m = byId.get(id);
+  pickedId = id;
+  pinnedId = id;
+  document.querySelectorAll('#list li').forEach(li => {
+    const match = +li.dataset.id === id;
+    li.classList.toggle('picked', match);
+    if (match && opts.scrollList !== false) li.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  });
+  if (m && opts.jumpToPage && !onSpread(m)) {
+    const to = spreadOf(m.pages[0]);
+    if (to >= 0) showSpread(to);
+  }
+  applyPinned();
+}
+
+function unpinMaterial() {
+  pinnedId = null; pickedId = null;
+  document.querySelectorAll('#list li').forEach(li => li.classList.remove('picked'));
+  slots.forEach(s => setActive(s, 0, true));
+}
+
+// pinnedIdの素材が今の見開きに含まれていれば、当たり判定マップの読み込みを
+// (必要なら)待ってからハイライトを固定表示する。ページめくり直後は非同期で
+// mapDataが届くため、ポーリングで待ち合わせる。
+function applyPinned() {
+  if (!pinnedId) return;
+  const m = byId.get(pinnedId);
+  if (!m) return;
+  slots.forEach(s => {
+    if (s.page == null || !m.pages.includes(s.page)) return;
+    const apply = () => { if (pinnedId === m.id && s.mapData) setActive(s, m.id, true); };
+    if (s.mapData) apply();
+    else {
+      let n = 0;
+      const t = setInterval(() => {
+        if (s.mapData || n++ > 40) { clearInterval(t); apply(); }
+      }, 25);
+    }
+  });
+}
+
+// ---- 1ページ分の表示と当たり判定を受け持つスロット ----
+function makeSlot(root) {
+  const s = { root,
+    img: root.querySelector('img.sheet'), hl: root.querySelector('canvas.hl'),
+    hit: root.querySelector('.hit'), tip: root.querySelector('.tip'),
+    page: null, mapData: null, active: 0, cache: new Map() };
+  s.hit.addEventListener('mousemove', e => {
+    // 紙面(.hit)側でmousemoveが発生している時点で、マウスは物理的に一覧
+    // (#list li)の外にいるはず。にもかかわらずlockedが立ったままなのは、
+    // 一覧側のmouseleaveが発火しないままリスト項目が消えた場合(ページ番号
+    // バッジのクリックでDOMが作り直されたときなど)で、ロックが固まった状態。
+    // 気づいた時点で自己修復する。
+    if (locked) locked = null;
+    if (animating) return;
+    const id = idAt(s, e.clientX, e.clientY);
+    const pm = pinnedId && byId.get(pinnedId);
+    const fallback = (pm && pm.pages.includes(s.page)) ? pinnedId : 0;
+    setActive(s, id || fallback);
+    if (id) {
+      const r = s.hit.getBoundingClientRect();
+      s.tip.style.left = (e.clientX - r.left) + 'px';
+      s.tip.style.top = (e.clientY - r.top) + 'px';
+      s.tip.classList.add('on');
+    }
+  });
+  s.hit.addEventListener('mouseleave', () => {
+    if (locked) return;
+    const pm = pinnedId && byId.get(pinnedId);
+    setActive(s, (pm && pm.pages.includes(s.page)) ? pinnedId : 0);
+  });
+  s.hit.addEventListener('click', () => {
+    const m = byId.get(s.active);
+    if (m) selectMaterial(m.id, { jumpToPage: false });
+  });
+  return s;
+}
+
+// ページめくりのたびに当たり判定マップ(mapW×mapHのPNG)を毎回デコードし直すと、
+// 「めくり終わった直後に素早くマウスを動かす」タイミングでmapDataがまだnullのまま
+// ハイライトが一切出ない、という再現しづらい不具合が起きる。
+// 一度デコードしたページのmapDataはページ番号ごとにキャッシュして使い回す。
+const mapDataCache = new Map(); // pageIndex -> Uint8ClampedArray
+
+// 当たり判定マップの読み込み・デコードに失敗した場合、原因不明のまま
+// 「ハイライトが出ない」という現象になるのを避けるため、画面上に赤いバナーで
+// 具体的な原因を表示する。
+const diagEl = document.getElementById('diag');
+const diagSeen = new Set();
+function showDiag(msg) {
+  if (diagSeen.has(msg)) return;
+  diagSeen.add(msg);
+  diagEl.style.display = 'block';
+  diagEl.textContent = (diagEl.textContent ? diagEl.textContent + '\n' : '') + msg;
+  console.error('[当たり判定エラー]', msg);
+}
+
+function decodeMap(pageIndex, onReady) {
+  if (mapDataCache.has(pageIndex)) { onReady(mapDataCache.get(pageIndex)); return; }
+  const p = DATA.pages[pageIndex];
+  if (!p || !p.map) { onReady(null); return; }
+  const img = new Image();
+  img.onerror = () => {
+    showDiag(`ページ${pageIndex + 1}(${p.label})の当たり判定マップ画像の読み込みに失敗しました。`);
+  };
+  img.onload = () => {
+    try {
+      const c = document.createElement('canvas');
+      c.width = p.mapW; c.height = p.mapH;
+      const g = c.getContext('2d', { willReadFrequently: true });
+      g.drawImage(img, 0, 0);
+      const data = g.getImageData(0, 0, p.mapW, p.mapH).data;
+      // getImageData()は例外を投げずに「全部0(真っ黒)」のデータを返すことがある。
+      // 拡張機能やセキュリティソフトが、指紋認証(fingerprinting)対策として
+      // canvasの読み出し結果を無効化するケースがこれにあたる。
+      let nonZero = false;
+      for (let i = 0; i < data.length; i += 4) {
+        if (data[i] || data[i + 1]) { nonZero = true; break; }
+      }
+      if (!nonZero) {
+        showDiag(`ページ${pageIndex + 1}(${p.label})の当たり判定データが、例外は出ないものの中身が空(全ピクセル0)で読み出されました。\n`
+          + `→ ブラウザの拡張機能やセキュリティソフトによる「キャンバス指紋認証(fingerprinting)対策」が、`
+          + `画像データの読み出しを無効化している可能性があります。`
+          + `シークレットウィンドウで開き直すか、拡張機能を一時的に無効にしてお試しください。`);
+      }
+      mapDataCache.set(pageIndex, data);
+      onReady(data);
+    } catch (e) {
+      // file://で開いた際にcanvasが「汚染」されデータを読み出せない、等の
+      // 環境依存の失敗はここに来る。
+      showDiag(`ページ${pageIndex + 1}(${p.label})の当たり判定データの読み出しに失敗しました: ${e.name}: ${e.message}\n`
+        + `→ zipから展開せずに開いている、または一部のブラウザのセキュリティ制限が原因の可能性があります。`);
+    }
+  };
+  img.src = p.map;
+}
+
+// 表示中の見開きの前後1見開き分を静かに先読みしておく。
+function prefetchAround(spreadIndex) {
+  [spreadIndex - 1, spreadIndex, spreadIndex + 1].forEach(si => {
+    const sp = SPREADS[si];
+    if (!sp) return;
+    [sp.l, sp.r].forEach(pi => { if (pi != null) decodeMap(pi, () => {}); });
+  });
+}
+
+function loadSlot(s, pageIndex) {
+  s.page = pageIndex; s.mapData = null; s.active = 0; s.cache.clear();
+  s.cacheCanvas = null; s.boxesCache = null;
+  s.tip.classList.remove('on'); s.hit.classList.remove('pick');
+  if (pageIndex == null) {
+    s.root.classList.add('blank');
+    s.img.removeAttribute('src'); s.hl.width = 1; s.hl.height = 1;
+    return;
+  }
+  s.root.classList.remove('blank');
+  const p = DATA.pages[pageIndex];
+  s.img.onerror = () => showDiag(`ページ${pageIndex + 1}(${p.label})の紙面画像(${p.src})の読み込みに失敗しました。`
+    + `zipを展開したフォルダの中にpagesフォルダごと置かれているかご確認ください。`);
+  s.img.src = p.src; s.img.alt = p.label;
+  s.hl.width = p.mapW; s.hl.height = p.mapH;
+  s.hl.getContext('2d').clearRect(0, 0, p.mapW, p.mapH);
+  decodeMap(pageIndex, data => {
+    // 非同期で解決した時点でも、まだ同じページを表示中の場合だけ反映する
+    if (s.page === pageIndex) { s.mapData = data; redrawHL(s); }
+  });
+}
+
+function idAt(s, cx, cy) {
+  if (!s.mapData || s.page == null) return 0;
+  const p = DATA.pages[s.page], r = s.hit.getBoundingClientRect();
+  const x = Math.floor((cx - r.left) / r.width * p.mapW);
+  const y = Math.floor((cy - r.top) / r.height * p.mapH);
+  if (x < 0 || y < 0 || x >= p.mapW || y >= p.mapH) return 0;
+  const o = (y * p.mapW + x) * 4;
+  return s.mapData[o] + (s.mapData[o + 1] << 8);
+}
+
+function overlay(s, id) {
+  if (s.cache.has(id)) return s.cache.get(id);
+  const p = DATA.pages[s.page];
+  const img = new ImageData(p.mapW, p.mapH), out = img.data;
+  for (let i = 0; i < p.mapW * p.mapH; i++) {
+    const o = i * 4;
+    if (s.mapData[o] + (s.mapData[o + 1] << 8) === id) {
+      out[o] = 0; out[o + 1] = 102; out[o + 2] = 204; out[o + 3] = 95;
+    }
+  }
+  s.cache.set(id, img);
+  return img;
+}
+
+// overlay()が返すImageDataはputImageDataで直接描くと下地(常時枠表示の矩形など)を
+// 消してしまう(putImageDataはアルファ合成せず生ピクセルを上書きするため)。
+// 一度オフスクリーンcanvasに焼いてからdrawImage()すれば通常の合成描画で重ねられる。
+function overlayCanvas(s, id) {
+  if (!s.cacheCanvas) s.cacheCanvas = new Map();
+  if (s.cacheCanvas.has(id)) return s.cacheCanvas.get(id);
+  const img = overlay(s, id);
+  const c = document.createElement('canvas');
+  c.width = img.width; c.height = img.height;
+  c.getContext('2d').putImageData(img, 0, 0);
+  s.cacheCanvas.set(id, c);
+  return c;
+}
+
+// 「枠表示」トグル用: ページ内の全素材のバウンディングボックスをmapDataから
+// 1回だけ走査して求め、以後はslotごとにキャッシュを使い回す。
+function computeBoxes(s) {
+  if (s.boxesCache) return s.boxesCache;
+  const p = DATA.pages[s.page];
+  const boxes = new Map();
+  for (let y = 0; y < p.mapH; y++) {
+    for (let x = 0; x < p.mapW; x++) {
+      const o = (y * p.mapW + x) * 4;
+      const id = s.mapData[o] + (s.mapData[o + 1] << 8);
+      if (!id) continue;
+      let b = boxes.get(id);
+      if (!b) boxes.set(id, { minX: x, minY: y, maxX: x, maxY: y });
+      else {
+        if (x < b.minX) b.minX = x; if (x > b.maxX) b.maxX = x;
+        if (y < b.minY) b.minY = y; if (y > b.maxY) b.maxY = y;
+      }
+    }
+  }
+  s.boxesCache = boxes;
+  return boxes;
+}
+
+function drawAllBoxes(s, ctx) {
+  const p = DATA.pages[s.page];
+  const boxes = computeBoxes(s);
+  ctx.save();
+  ctx.strokeStyle = 'rgba(226,0,26,.9)';
+  ctx.lineWidth = Math.max(2, Math.round(p.mapW / 300));
+  boxes.forEach(b => ctx.strokeRect(b.minX + 0.5, b.minY + 0.5, b.maxX - b.minX, b.maxY - b.minY));
+  ctx.restore();
+}
+
+// 紙面検索でヒットした文字の位置を、目立つ枠+半透明の塗りで示す
+function drawTextHits(s, ctx) {
+  if (!textHit || textHit.page !== s.page) return;
+  const p = DATA.pages[s.page];
+  const pad = Math.max(2, Math.round(p.mapW / 400));
+  ctx.save();
+  ctx.strokeStyle = 'rgba(226,0,26,.95)';
+  ctx.fillStyle = 'rgba(255,224,138,.45)';
+  ctx.lineWidth = Math.max(2, Math.round(p.mapW / 350));
+  textHit.boxes.forEach(b => {
+    const x = b[0] - pad, y = b[1] - pad, w = (b[2] - b[0]) + pad * 2, h = (b[3] - b[1]) + pad * 2;
+    ctx.fillRect(x, y, w, h);
+    ctx.strokeRect(x + 0.5, y + 0.5, w, h);
+  });
+  ctx.restore();
+}
+
+let frameToggleOn = false;
+
+// キャンバスの再描画を一箇所に集約する: 「枠表示」中は常時ボックスを下地として描き、
+// その上に紙面検索のヒット箇所、さらにアクティブな(ホバー中/固定選択中の)素材の
+// 塗りつぶしハイライトを重ねる。
+function redrawHL(s) {
+  if (s.page == null) return;
+  const p = DATA.pages[s.page];
+  const ctx = s.hl.getContext('2d');
+  ctx.clearRect(0, 0, p.mapW, p.mapH);
+  if (frameToggleOn && s.mapData) drawAllBoxes(s, ctx);
+  drawTextHits(s, ctx);
+  if (s.active && s.mapData) ctx.drawImage(overlayCanvas(s, s.active), 0, 0);
+}
+
+function setActive(s, id, force) {
+  if (!force && s.active === id) return;
+  s.active = id;
+  const m = byId.get(id);
+  s.hit.classList.toggle('pick', !!m);
+  document.querySelectorAll('#list li').forEach(li =>
+    li.classList.toggle('hot', !!m && +li.dataset.id === id));
+  redrawHL(s);
+  if (!m || !s.mapData) { s.tip.classList.remove('on'); return; }
+  s.tip.innerHTML = m.name + '<br>原本 <b>' + m.dim + ' px・' + m.size + '</b>（' +
+    m.ext.toUpperCase() + '）';
+}
+
+const slotL = makeSlot(document.getElementById('paneL'));
+const slotR = makeSlot(document.getElementById('paneR'));
+const slots = [slotL, slotR];
+
+// ---- めくり ----
+const leaf = document.getElementById('leaf');
+const faceF = leaf.querySelector('.front'), faceB = leaf.querySelector('.back');
+const bg = i => (i == null ? 'none' : 'url("' + DATA.pages[i].src + '")');
+
+function showSpread(i) {
+  curSpread = Math.max(0, Math.min(SPREADS.length - 1, i));
+  const sp = SPREADS[curSpread];
+  loadSlot(slotL, sp.l);
+  loadSlot(slotR, sp.r);
+  updateChrome();
+  render();
+  prefetchAround(curSpread);
+  applyPinned();
+}
+
+function onSpread(m) {
+  const sp = SPREADS[curSpread];
+  return m.pages.includes(sp.l) || m.pages.includes(sp.r);
+}
+function spreadOf(pageIndex) {
+  return SPREADS.findIndex(sp => sp.l === pageIndex || sp.r === pageIndex);
+}
+
+let pendingFinish = null;
+function turn(dir) {
+  if (pendingFinish) pendingFinish();       // 進行中のめくりは即確定してから次へ
+  const to = curSpread + (dir === 'next' ? 1 : -1);
+  if (to < 0 || to >= SPREADS.length) return;
+  animating = true;
+  const from = SPREADS[curSpread], dest = SPREADS[to];
+  const target = dir === 'next' ? 'rotateY(-180deg)' : 'rotateY(180deg)';
+  if (dir === 'next') {
+    loadSlot(slotR, dest.r);                 // 下地の右を行き先に差し替え
+    leaf.style.left = '50%'; leaf.style.transformOrigin = 'left center';
+    faceF.style.backgroundImage = bg(from.r);
+    faceB.style.backgroundImage = bg(dest.l);
+  } else {
+    loadSlot(slotL, dest.l);
+    leaf.style.left = '0%'; leaf.style.transformOrigin = 'right center';
+    faceF.style.backgroundImage = bg(from.l);
+    faceB.style.backgroundImage = bg(dest.r);
+  }
+  // めくりアニメーション中に、見開きの反対側(下地として差し替えていない方の
+  // ページ)の当たり判定マップも先読みしておく。これをしないと、めくり完了直後に
+  // 反対側のページへすぐマウスを動かした際、デコードが間に合わずハイライトが
+  // 一切出ない瞬間が生じることがある。
+  if (dest.l != null) decodeMap(dest.l, () => {});
+  if (dest.r != null) decodeMap(dest.r, () => {});
+  // いったん0度で確定描画（リフロー）してから transition を効かせる。
+  // requestAnimationFrame はバックグラウンドで間引かれるため使わない。
+  leaf.style.display = 'block';
+  leaf.style.transition = 'none';
+  leaf.style.transform = 'rotateY(0deg)';
+  void leaf.offsetWidth;
+  leaf.style.transition = '';
+  leaf.style.transform = target;
+
+  let fired = false;
+  const finish = () => {
+    if (fired) return; fired = true;
+    pendingFinish = null;
+    clearTimeout(timer);
+    leaf.removeEventListener('transitionend', finish);
+    leaf.style.transition = 'none'; leaf.style.transform = 'rotateY(0deg)';
+    leaf.style.display = 'none';
+    void leaf.offsetWidth; leaf.style.transition = '';
+    animating = false;
+    showSpread(to);
+  };
+  pendingFinish = finish;
+  leaf.addEventListener('transitionend', finish);
+  const timer = setTimeout(finish, 850);    // 念のためのフォールバック
+}
+
+function updateChrome() {
+  document.querySelector('.nav.prev').disabled = curSpread === 0;
+  document.querySelector('.nav.next').disabled = curSpread === SPREADS.length - 1;
+  const sp = SPREADS[curSpread];
+  const shown = [sp.l, sp.r].filter(x => x != null);
+  const labels = shown.map(i => DATA.pages[i].label);
+  document.getElementById('slider').value = curSpread;
+  const cnt = DATA.materials.filter(m => m.hotspot !== false && onSpread(m)).length;
+  document.getElementById('pginfo').textContent =
+    labels.join('・') + ' — クリックできる素材 ' + cnt + '点';
+}
+
+// 一覧側からのハイライト（マップ読込を待ってから描く）
+function highlight(m, on) {
+  if (m.hotspot === false) return;
+  locked = on ? m.id : null;
+  const fallback = s => {
+    const pm = pinnedId && byId.get(pinnedId);
+    return (pm && s.page != null && pm.pages.includes(s.page)) ? pinnedId : 0;
+  };
+  slots.forEach(s => {
+    if (s.page != null && m.pages.includes(s.page)) {
+      if (on && !s.mapData) {
+        let n = 0;
+        const t = setInterval(() => {
+          if (s.mapData || n++ > 40) {
+            clearInterval(t);
+            if (locked === m.id) setActive(s, m.id, true);
+          }
+        }, 25);
+      } else {
+        setActive(s, on ? m.id : fallback(s), true);
+      }
+    } else if (!on) {
+      setActive(s, fallback(s), true);
+    }
+  });
+}
+
+// ---- ナビ ----
+document.querySelector('.nav.prev').onclick = () => turn('prev');
+document.querySelector('.nav.next').onclick = () => turn('next');
+document.addEventListener('keydown', e => {
+  if (e.target.matches('input, textarea')) return;
+  if (e.key === 'ArrowLeft') turn('prev');
+  else if (e.key === 'ArrowRight') turn('next');
+});
+const slider = document.getElementById('slider');
+slider.max = SPREADS.length - 1;
+slider.oninput = e => { if (!animating) showSpread(+e.target.value); };
+
+// ---- ページ番号ジャンプ ----
+// ここでの「ページ」は、このビューア内での通し番号(1〜総ページ数)。
+// 印刷版の実ページ番号(誌面下部の数字)とは一致しない場合があるので注意。
+const pagejumpForm = document.getElementById('pagejump');
+const pnumInput = document.getElementById('pnum');
+pnumInput.max = DATA.pages.length;
+pagejumpForm.addEventListener('submit', e => {
+  e.preventDefault();
+  if (animating) return;
+  const n = Math.round(+pnumInput.value);
+  if (!n || n < 1 || n > DATA.pages.length) return;
+  const to = spreadOf(n - 1);
+  if (to >= 0) showSpread(to);
+});
+
+// ---- 一覧 ----
+const listEl = document.getElementById('list');
+// 「範囲(すべて/この見開き)」と「種類」は別々の条件なので、2グループに分けて
+// それぞれ択一で選べるようにする(両方を同時に効かせる)。
+document.querySelectorAll('#filterScope button').forEach(b => {
+  b.onclick = () => {
+    filterScope = b.dataset.scope;
+    document.querySelectorAll('#filterScope button').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    render();
+  };
+});
+// 種類の選択肢は、実際に含まれている拡張子から作る(点数の多い順に最大5種類、
+// 残りは「その他」にまとめる)。カタログごとに素材の構成は違うので、
+// 存在しない種類のボタンが並んだり、逆に多数派の種類が選べなかったりしないようにする。
+const TYPE_COUNTS = new Map();
+DATA.materials.forEach(m => {
+  const e = (m.ext || '').toLowerCase();
+  TYPE_COUNTS.set(e, (TYPE_COUNTS.get(e) || 0) + 1);
+});
+const MAIN_TYPES = [...TYPE_COUNTS.entries()]
+  .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+  .slice(0, 5).map(e => e[0]);
+const HAS_OTHER = TYPE_COUNTS.size > MAIN_TYPES.length;
+function matchesType(m) {
+  const e = (m.ext || '').toLowerCase();
+  if (filterType === 'all') return true;
+  if (filterType === 'other') return !MAIN_TYPES.includes(e);
+  return e === filterType;
+}
+(function buildTypeFilters() {
+  const box = document.getElementById('filterType');
+  const defs = [['all', 'すべて']].concat(
+    MAIN_TYPES.map(e => [e, e.toUpperCase() + '（' + TYPE_COUNTS.get(e) + '）']),
+    HAS_OTHER ? [['other', 'その他']] : []);
+  box.innerHTML = defs.map(([v, label], i) =>
+    '<button type="button" data-type="' + v + '"' + (i === 0 ? ' class="on"' : '') + '>' +
+    label + '</button>').join('');
+  box.querySelectorAll('button').forEach(b => {
+    b.onclick = () => {
+      filterType = b.dataset.type;
+      box.querySelectorAll('button').forEach(x => x.classList.remove('on'));
+      b.classList.add('on');
+      render();
+    };
+  });
+})();
+document.getElementById('q').addEventListener('input', () => { render(); renderPageHits(); });
+
+function render() {
+  const q = document.getElementById('q').value.trim().toLowerCase();
+  const shown = DATA.materials.filter(m => {
+    if (q && !m.name.toLowerCase().includes(q)) return false;
+    if (filterScope === 'page' && !onSpread(m)) return false;
+    return matchesType(m);
+  });
+  listEl.innerHTML = '';
+  shown.forEach(m => {
+    const li = document.createElement('li');
+    li.dataset.id = m.id;
+    const pgs = m.pages.map(i =>
+      '<span class="pg" data-go="' + i + '">' + DATA.pages[i].label + '</span>').join('');
+    const lightBtn = m.light ?
+      '<a class="dl-light" href="' + m.light + '" download="' + lightName(m) +
+      '" title="軽量JPG（画面表示・資料貼付用）">JPG</a>' : '';
+    li.innerHTML =
+      '<input type="checkbox" class="sel" data-id="' + m.id + '"' +
+      (selectedIds.has(m.id) ? ' checked' : '') + ' aria-label="選択">' +
+      '<img src="' + m.thumb + '" alt="" loading="lazy">' +
+      '<div><p class="m-name">' + m.name + '</p><p class="m-meta">' +
+      '<span class="badge' + (m.is_vector ? ' vec' : '') + '">' + m.ext + '</span>' +
+      m.dim + '　' + m.size + pgs + '</p></div>' +
+      '<div class="dlgroup"><a class="dl" href="' + m.asset + '" download="' + m.name +
+      '" title="元データ（印刷用原本）">元データ</a>' + lightBtn + '</div>';
+    li.querySelectorAll('.pg').forEach(s => {
+      s.onclick = ev => {
+        ev.stopPropagation();
+        const to = spreadOf(+s.dataset.go);
+        if (to >= 0 && to !== curSpread) showSpread(to);
+        setTimeout(() => highlight(m, true), 60);
+      };
+    });
+    const sel = li.querySelector('.sel');
+    sel.addEventListener('click', ev => ev.stopPropagation());
+    sel.addEventListener('change', ev => toggleSelect(m.id, ev.target.checked));
+    // 標準のリンク動作(環境によっては「開くだけ」になる)を止め、確実に保存させる
+    li.querySelectorAll('.dlgroup a').forEach(a => {
+      a.addEventListener('click', ev => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        forceDownload(a.getAttribute('href'), a.getAttribute('download'));
+      });
+    });
+    if (m.hotspot !== false) {
+      li.classList.add('clickable');
+      li.addEventListener('mouseenter', () => highlight(m, true));
+      li.addEventListener('mouseleave', () => highlight(m, false));
+      li.addEventListener('click', ev => {
+        if (ev.target.closest('.dlgroup') || ev.target.closest('.pg') || ev.target.closest('.sel')) return;
+        if (pinnedId === m.id) unpinMaterial();
+        else selectMaterial(m.id, { jumpToPage: true });
+      });
+    }
+    if (m.id === pickedId) li.classList.add('picked');
+    listEl.appendChild(li);
+  });
+  if (!shown.length) {
+    const hasPageHits = q && findPageHits(q).length > 0;
+    listEl.innerHTML = '<li class="empty">該当するファイルはありません。' +
+      (hasPageHits ? '<br>（紙面内には該当箇所があります。上の「紙面内の該当箇所」からその場所へ移動できます）' : '') +
+      '</li>';
+  }
+}
+
+const rasters = DATA.materials.filter(m => m.hotspot !== false);
+const others = DATA.materials.filter(m => m.hotspot === false);
+const total = DATA.materials.reduce((s, m) => s + m.bytes, 0);
+document.getElementById('note').innerHTML =
+  '素材 <b>' + rasters.length + '点</b>' +
+  (others.length ? '＋誌面に配置なしの原本 <b>' + others.length + '点</b>' : '') +
+  '（合計 <b>' + (total / 1048576).toFixed(1) + ' MB</b>）／全 <b>' +
+  DATA.pages.length + 'ページ</b>。「元データ」ボタンで<b>印刷に使った原本そのもの</b>を、' +
+  '「JPG」ボタンで画面表示・資料貼付用に軽量化したJPGをダウンロードできます。';
+
+document.getElementById('headerSub').textContent =
+  DATA.pages.length + 'ページ・' + DATA.materials.length + '素材';
+
+// ---- 枠表示トグル(DLできる箇所を紙面上に常時表示する) ----
+const frameToggleEl = document.getElementById('frameToggle');
+frameToggleEl.addEventListener('change', () => {
+  frameToggleOn = frameToggleEl.checked;
+  slots.forEach(s => redrawHL(s));
+});
+
+// ---- 複数選択DL ----
+const bulkbar = document.getElementById('bulkbar');
+const bulkCountEl = document.getElementById('bulkCount');
+function updateBulkbar() {
+  bulkCountEl.textContent = selectedIds.size + '点選択中';
+  bulkbar.classList.toggle('show', selectedIds.size > 0);
+}
+function toggleSelect(id, on) {
+  if (on) selectedIds.add(id); else selectedIds.delete(id);
+  updateBulkbar();
+}
+document.getElementById('bulkClear').addEventListener('click', () => {
+  selectedIds.clear();
+  document.querySelectorAll('#list li input.sel').forEach(cb => cb.checked = false);
+  updateBulkbar();
+});
+function lightName(m) {
+  return m.name.replace(/\.[^.]+$/, '') + '_light.jpg';
+}
+// 同梱のZIP実装でまとめてダウンロードする。file://で開いている等の理由で
+// fetch()が使えない環境では、個別ダウンロードの連続実行にフォールバックする
+// (データが手に入らないのが最悪なので、必ず何かしらの形で完了させる)。
+async function zipAndDownload(materials, kind) {
+  try {
+    const files = [];
+    for (const m of materials) {
+      const path = kind === 'light' ? m.light : m.asset;
+      if (!path) continue;
+      const res = await fetch(path);
+      if (!res.ok) throw new Error('fetch failed: ' + path);
+      const buf = new Uint8Array(await res.arrayBuffer());
+      files.push({ name: kind === 'light' ? lightName(m) : m.name, data: buf });
+    }
+    if (!files.length) return false;
+    const blob = ZIP.build(files);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = '素材_' + (kind === 'light' ? '軽量JPG_' : '') + files.length + '点.zip';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 15000);
+    return true;
+  } catch (e) {
+    console.warn('ZIP化に失敗、個別ダウンロードに切り替えます', e);
+    return false;
+  }
+}
+async function downloadSelected(kind) {
+  const materials = [...selectedIds].map(id => byId.get(id)).filter(Boolean);
+  if (!materials.length) return;
+  const btns = [document.getElementById('bulkDl'), document.getElementById('bulkDlLight')];
+  btns.forEach(b => b.disabled = true);
+  try {
+    const ok = await zipAndDownload(materials, kind);
+    if (!ok) {
+      for (const m of materials) {
+        const path = kind === 'light' ? m.light : m.asset;
+        if (!path) continue;
+        download(path, kind === 'light' ? lightName(m) : m.name);
+        await new Promise(r => setTimeout(r, 350));
+      }
+      if (IS_FILE_PROTOCOL) {
+        showFileProtocolNotice();
+        alert('フォルダから直接開いているため、まとめてZIPダウンロードができません。\n\n'
+          + '同じフォルダの「ツールを開く.bat」から開き直すと、まとめてZIPでダウンロードできます。\n'
+          + '（今回は個別ダウンロードを試みました）');
+      } else {
+        alert('お使いの環境ではまとめてZIP化できなかったため、' + materials.length +
+          '個のファイルを個別にダウンロードしました。ブラウザで「複数ファイルのダウンロードを許可しますか」と' +
+          '聞かれた場合は「許可」を選んでください。');
+      }
+    }
+  } finally {
+    btns.forEach(b => b.disabled = false);
+  }
+}
+document.getElementById('bulkDl').addEventListener('click', () => downloadSelected('orig'));
+document.getElementById('bulkDlLight').addEventListener('click', () => downloadSelected('light'));
+
+// ---- 紙面(印刷されている文字)の検索 ----
+// 素材(画像ファイル名)の検索とは別に、誌面に実際に印刷されている文字を検索して
+// 該当ページへ飛べるようにする。ページ数が増えるほど、目的の箇所へページ送りではなく
+// 検索で辿り着けることが重要になるため。
+const pagehitsEl = document.getElementById('pagehits');
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+}
+
+function findPageHits(q) {
+  const hits = [];
+  if (!q) return hits;
+  DATA.pages.forEach((p, pi) => {
+    if (!p.text) return;
+    const boxes = [], snippets = [];
+    p.text.forEach(e => {
+      if (e.t.toLowerCase().includes(q)) {
+        boxes.push(e.b);
+        if (snippets.length < 3) snippets.push(e.t);
+      }
+    });
+    if (boxes.length) hits.push({ page: pi, boxes, snippets, count: boxes.length });
+  });
+  return hits;
+}
+
+function jumpToPageHit(hit) {
+  textHit = { page: hit.page, boxes: hit.boxes };
+  const to = spreadOf(hit.page);
+  if (to >= 0 && to !== curSpread) showSpread(to);
+  else slots.forEach(s => redrawHL(s));
+}
+
+function renderPageHits() {
+  const q = document.getElementById('q').value.trim().toLowerCase();
+  const hits = findPageHits(q);
+  if (!hits.length) {
+    pagehitsEl.classList.remove('show');
+    pagehitsEl.innerHTML = '';
+    if (!q) { textHit = null; slots.forEach(s => redrawHL(s)); }
+    return;
+  }
+  const total = hits.reduce((n, h) => n + h.count, 0);
+  const rows = hits.map((h, i) => {
+    const label = DATA.pages[h.page].label;
+    const snip = h.snippets.map(t => {
+      const idx = t.toLowerCase().indexOf(q);
+      if (idx < 0) return escapeHtml(t);
+      return escapeHtml(t.slice(0, idx)) + '<mark>' + escapeHtml(t.slice(idx, idx + q.length)) +
+        '</mark>' + escapeHtml(t.slice(idx + q.length));
+    }).join(' / ');
+    return '<li data-hit="' + i + '"><span class="hitpg">' + escapeHtml(label) +
+      '</span><span class="hittext">' + snip +
+      (h.count > h.snippets.length ? ' <span style="opacity:.6">ほか' +
+        (h.count - h.snippets.length) + '件</span>' : '') + '</span></li>';
+  }).join('');
+  pagehitsEl.innerHTML = '<h3>紙面内の該当箇所（' + hits.length + 'ページ・' + total + '件） — クリックでその場所へ移動</h3><ul>' + rows + '</ul>';
+  pagehitsEl.classList.add('show');
+  pagehitsEl.querySelectorAll('li').forEach(li => {
+    li.onclick = () => jumpToPageHit(hits[+li.dataset.hit]);
+  });
+}
+
+// Enterで最初の候補へジャンプ。素材名が一致すればそれを、しなければ紙面の文字を優先する。
+document.getElementById('q').addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  const q = e.target.value.trim().toLowerCase();
+  if (!q) return;
+  const first = DATA.materials.find(m => m.name.toLowerCase().includes(q) && m.hotspot !== false);
+  if (first) { selectMaterial(first.id, { jumpToPage: true }); return; }
+  const hits = findPageHits(q);
+  if (hits.length) jumpToPageHit(hits[0]);
+});
+
+// フォルダから直接開いている場合は、ダウンロードが動かない理由と対処を最初から案内する
+// (クリックして初めて「動かない」と気づく状態を避けるため)。
+if (IS_FILE_PROTOCOL) showFileProtocolNotice();
+
+showSpread(0);
+</script>
+</body>
+</html>
