@@ -31,6 +31,7 @@ import csv
 import hashlib
 import io
 import json
+import re
 import shutil
 import sys
 from dataclasses import dataclass, field
@@ -41,6 +42,10 @@ import pymupdf
 from PIL import Image, ImageDraw, ImageFont
 
 VECTOR_EXTS = {"ai", "eps", "pdf", "svg", "indd"}
+# 型番らしい文字列（WBT-N3030SB(W) / LPT-301N（W） / No.3302-0 など）。
+# リンク一覧が無いカタログで、写真の近くにある型番を素材名に採用するために使う。
+MODEL_RE = re.compile(r"^[A-Z][A-Z0-9]{1,}[-‐‑–][A-Z0-9][A-Z0-9\-]*[A-Z0-9]?(?:[（(][^）)]{1,4}[）)])?$")
+NG_NAME_CHARS = re.compile(r'[\\/:*?"<>|\r\n\t]')
 # 一覧のサムネイルを画像から作れない形式（Illustrator等）は、代わりに
 # 拡張子を大きく書いた「ダミーの表紙」を描く。何のファイルかは一目で分かる。
 PLACEHOLDER_FONTS = [
@@ -159,7 +164,7 @@ class Builder:
                 rects = page.get_image_rects(xref)
                 if not rects:
                     continue
-                m = self._material_for(xref, smask, src_pno, order)
+                m = self._material_for(xref, smask, src_pno, order, rects[0])
                 if m is None:
                     continue
                 if pos not in m.pages:
@@ -170,7 +175,8 @@ class Builder:
         if self.assets_dir and self.args.include_unplaced:
             self._collect_unplaced_assets()
 
-    def _material_for(self, xref: int, smask: int, pno: int, order: int) -> Material | None:
+    def _material_for(self, xref: int, smask: int, pno: int, order: int,
+                      rect_hint: pymupdf.Rect | None = None) -> Material | None:
         try:
             info = self.doc.extract_image(xref)
         except Exception as e:                                  # 壊れた画像は飛ばす
@@ -187,7 +193,15 @@ class Builder:
             self.used_assets.add(asset_path)
             name, real_ext = asset_path.name, asset_path.suffix.lstrip(".").lower()
         else:
-            name = linked or f"p{pno + 1:02d}_{order:02d}.{ext}"
+            # リンク一覧が無い場合の自動命名。誌面のページ番号で振っておくと、
+            # 「p.12の3番目の写真」と口頭でも指し示せる。さらに、写真の近くに
+            # 型番などの文字があれば名前に含め、型番でも検索できるようにする。
+            stem = f"p{pno + 1 + self.args.page_offset:02d}_{order:02d}"
+            if not linked and not self.args.no_name_hints:
+                hint = self._label_near(self.doc[pno], rect_hint) if rect_hint else None
+                if hint:
+                    stem = f"{stem}_{hint}"
+            name = linked or f"{stem}.{ext}"
             real_ext = Path(name).suffix.lstrip(".").lower() or ext
 
         m = Material(id=len(self.materials) + 1, name=name, ext=real_ext,
@@ -207,6 +221,40 @@ class Builder:
         self.by_key[key] = m
         self.materials.append(m)
         return m
+
+    def _label_near(self, page, rect) -> str | None:
+        """画像のすぐ下（無ければ内側・すぐ上）にある文字から、素材名の手がかりを拾う。
+
+        カタログ紙面では写真の直下に型番が置かれることが多い。リンク一覧が
+        無い場合でも「p12_03_WBT-N3030SB」のような名前になり、型番で検索できる。
+        """
+        cands: list[tuple[float, bool, str]] = []
+        for block in page.get_text("dict")["blocks"]:
+            for line in block.get("lines", []):
+                for span in line.get("spans", []):
+                    t = span["text"].strip()
+                    if not t or len(t) > 30:
+                        continue
+                    x0, y0, x1, y1 = span["bbox"]
+                    # 横方向に重なっている文字だけを候補にする
+                    if min(x1, rect.x1) - max(x0, rect.x0) < (rect.width * 0.25):
+                        continue
+                    if y0 >= rect.y1:                      # 画像の下
+                        dist = y0 - rect.y1
+                    elif y1 <= rect.y0:                    # 画像の上
+                        dist = (rect.y0 - y1) * 1.6        # 下より優先度を落とす
+                    else:                                  # 画像に重なっている
+                        dist = 0.0
+                    if dist > 60:
+                        continue
+                    cands.append((dist, bool(MODEL_RE.match(t)), t))
+        if not cands:
+            return None
+        # 型番らしいものを最優先。次に近いもの。
+        cands.sort(key=lambda c: (not c[1], c[0]))
+        best = cands[0][2]
+        best = NG_NAME_CHARS.sub("", best).replace(" ", "_").strip("._")
+        return best[:28] or None
 
     @staticmethod
     def _safe_open(src) -> Image.Image | None:
@@ -481,6 +529,8 @@ def main():
     ap.add_argument("--page-label", default="P.{n}", help="ページ表示名の書式。{n}は元PDFのページ番号（既定 'P.{n}'）")
     ap.add_argument("--page-offset", type=int, default=0,
                     help="ページ表示名の番号のズレ補正。誌面のノンブルとPDFのページ番号が違うときに指定")
+    ap.add_argument("--no-name-hints", action="store_true",
+                    help="リンク一覧が無いとき、誌面の近くの文字（型番など）を素材名に使わない")
     ap.add_argument("--include-unplaced", action="store_true",
                     help="原本フォルダにあるが誌面に配置されていないファイルも一覧に載せる")
     ap.add_argument("--template", default=str(Path(__file__).with_name("viewer_template.html")),

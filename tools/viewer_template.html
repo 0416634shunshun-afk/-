@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>__TITLE__</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230D2B6B'/%3E%3Crect x='7' y='8' width='8' height='16' fill='%23fff'/%3E%3Crect x='17' y='8' width='8' height='16' fill='%2300D000'/%3E%3C/svg%3E">
 <style>
   :root {
     --brand:#0066CC; --accent:#00D000; --navy:#0D2B6B;
@@ -454,7 +455,10 @@ function decodeMap(pageIndex, onReady) {
       for (let i = 0; i < data.length; i += 4) {
         if (data[i] || data[i + 1]) { nonZero = true; break; }
       }
-      if (!nonZero) {
+      // 素材が1点も無いページ（全面イラストなど）は、真っ黒で正常。
+      // 読み出しがブロックされている場合と区別するため、素材の有無で判定する。
+      const expectsMaterials = DATA.materials.some(m => m.pages.includes(pageIndex));
+      if (!nonZero && expectsMaterials) {
         showDiag(`ページ${pageIndex + 1}(${p.label})の当たり判定データが、例外は出ないものの中身が空(全ピクセル0)で読み出されました。\n`
           + `→ ブラウザの拡張機能やセキュリティソフトによる「キャンバス指紋認証(fingerprinting)対策」が、`
           + `画像データの読み出しを無効化している可能性があります。`
