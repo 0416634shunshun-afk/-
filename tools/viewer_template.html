@@ -298,7 +298,10 @@ function download(asset, name) {
 //   ・fetch/XHR/canvasでの読み出しを一切許可しない(=まとめてZIP化もできない)
 // ため、ダウンロード機能を正しく動かすにはHTTPで配信する必要がある。
 // 同梱の「ツールを開く.bat」がその配信を行う。
-const IS_FILE_PROTOCOL = location.protocol === 'file:';
+// 1ファイル版は画像も原本もHTMLに埋め込まれているため、フォルダから直接開いても
+// ダウンロードまで正常に動く。その場合は file:// の注意書きを出さない。
+const SELF_CONTAINED = DATA.selfContained === true;
+const IS_FILE_PROTOCOL = location.protocol === 'file:' && !SELF_CONTAINED;
 const DISPLAYABLE_RE = /\.(jpe?g|png|gif|bmp|webp|svg)$/i;
 
 // download属性は、環境によっては無視されて「ダウンロードされずブラウザ上で開くだけ」に

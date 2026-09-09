@@ -495,6 +495,32 @@ class Builder:
             out = [{"l": sp["r"], "r": sp["l"]} for sp in out]
         return out
 
+    MIME = {".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png",
+            ".gif": "image/gif", ".webp": "image/webp", ".svg": "image/svg+xml",
+            ".pdf": "application/pdf", ".ai": "application/postscript",
+            ".eps": "application/postscript", ".psd": "image/vnd.adobe.photoshop"}
+
+    def inline_all(self, data: dict):
+        """すべてのファイルをHTMLに埋め込み、1ファイルで完結させる。
+
+        zipを展開せずに開く・index.htmlだけ別の場所へコピーする、といった操作で
+        画像が表示されなくなる事故を根本からなくすため。相手に渡すのが1ファイルで済む。
+        """
+        import base64
+
+        def uri(rel: str) -> str:
+            f = self.out / rel
+            mime = self.MIME.get(f.suffix.lower(), "application/octet-stream")
+            return f"data:{mime};base64," + base64.b64encode(f.read_bytes()).decode("ascii")
+
+        for page in data["pages"]:
+            page["src"] = uri(page["src"])
+        for m in data["materials"]:
+            for key in ("thumb", "light", "asset"):
+                if m.get(key):
+                    m[key] = uri(m[key])
+        return data
+
     def write_index(self, data: dict):
         tpl = Path(self.args.template).read_text(encoding="utf-8")
         page_ratio = self.doc[0].rect
@@ -553,12 +579,23 @@ class Builder:
         data = {
             "title": self.args.title,
             "binding": self.args.binding,
+            "selfContained": bool(self.args.single_file),
             "pages": pages,
             "spreads": self.spreads(),
             "materials": materials,
         }
+        if self.args.single_file:
+            print("  すべてのファイルをHTMLに埋め込んでいます…")
+            data = self.inline_all(data)
         self.write_index(data)
-        self.write_launchers()
+        if self.args.single_file:
+            # 埋め込み済みなので、素材フォルダと起動スクリプトは不要
+            for d in ("pages", "thumbs", "light", "assets"):
+                shutil.rmtree(self.out / d, ignore_errors=True)
+            size = (self.out / "index.html").stat().st_size
+            print(f"  1ファイル版: index.html のみ（{human_size(size)}）")
+        else:
+            self.write_launchers()
         total = sum(m["bytes"] for m in materials)
         print(f"完了: {self.out}/index.html")
         print(f"  ページ {len(pages)} / 素材 {len(materials)} 点 / 原本合計 {human_size(total)}")
@@ -581,6 +618,9 @@ def main():
     ap.add_argument("--page-offset", default="0",
                     help="ノンブルのズレ補正。'5'＝全ページ+5、"
                          "'1:5,12:6'＝1ページ目から+5・12ページ目から+6（途中に差し込んだ場合）")
+    ap.add_argument("--single-file", action="store_true",
+                    help="画像も原本もHTMLに埋め込み、index.html 1つで完結させる"
+                         "（展開ミスで画像が出ない事故を防げる。容量は約1.35倍）")
     ap.add_argument("--labels",
                     help="ノンブルの個別指定CSV（列: page,label）。枝番ページ（14-1 など）に使う")
     ap.add_argument("--no-name-hints", action="store_true",
