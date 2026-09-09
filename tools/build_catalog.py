@@ -445,6 +445,9 @@ class Builder:
         for i in range(0, len(idx), 2):
             pair = idx[i:i + 2]
             out.append({"l": pair[0], "r": pair[1] if len(pair) > 1 else None})
+        if self.args.binding == "right":
+            # 和書（右綴じ）は右から左へ読む。若いページが右、次のページが左に来る。
+            out = [{"l": sp["r"], "r": sp["l"]} for sp in out]
         return out
 
     def write_index(self, data: dict):
@@ -504,6 +507,7 @@ class Builder:
         materials = self.write_materials()
         data = {
             "title": self.args.title,
+            "binding": self.args.binding,
             "pages": pages,
             "spreads": self.spreads(),
             "materials": materials,
@@ -524,6 +528,8 @@ def main():
     ap.add_argument("--links", help="リンク一覧CSV（列: page,order,filename／1始まり）")
     ap.add_argument("--dpi", type=int, default=150, help="誌面画像の解像度（既定150）")
     ap.add_argument("--jpeg-quality", type=int, default=82, help="誌面画像のJPEG品質（既定82）")
+    ap.add_argument("--binding", choices=["left", "right"], default="left",
+                    help="綴じ方向。和書のカタログ（右から左へ読む）は right（既定 left）")
     ap.add_argument("--pages", help="作る範囲。例 '21-34' や '1,5,10-12'（元PDFのページ番号・1始まり）")
     ap.add_argument("--cover", action="store_true", help="先頭ページを表紙（単独ページ）として扱う")
     ap.add_argument("--page-label", default="P.{n}", help="ページ表示名の書式。{n}は元PDFのページ番号（既定 'P.{n}'）")

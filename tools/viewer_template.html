@@ -277,6 +277,9 @@ const ZIP = (() => {
 
 const byId = new Map(DATA.materials.map(m => [m.id, m]));
 const SPREADS = DATA.spreads;
+// 和書（右綴じ）は右から左へ読む。ページの並びだけでなく、めくる向き・
+// ボタンの役割・矢印キー・スライダーの向きまで、すべて左右が入れ替わる。
+const RTL = DATA.binding === 'right';
 let curSpread = 0, filterScope = 'all', filterType = 'all',
     locked = null, animating = false, pickedId = null, pinnedId = null;
 const selectedIds = new Set();
@@ -658,8 +661,10 @@ function turn(dir) {
   if (to < 0 || to >= SPREADS.length) return;
   animating = true;
   const from = SPREADS[curSpread], dest = SPREADS[to];
-  const target = dir === 'next' ? 'rotateY(-180deg)' : 'rotateY(180deg)';
-  if (dir === 'next') {
+  // 右綴じでは、進むときに「左のページ」を右へめくる（左綴じの逆）。
+  const flipRight = (dir === 'next') !== RTL;
+  const target = flipRight ? 'rotateY(-180deg)' : 'rotateY(180deg)';
+  if (flipRight) {
     loadSlot(slotR, dest.r);                 // 下地の右を行き先に差し替え
     leaf.style.left = '50%'; leaf.style.transformOrigin = 'left center';
     faceF.style.backgroundImage = bg(from.r);
@@ -703,12 +708,14 @@ function turn(dir) {
 }
 
 function updateChrome() {
-  document.querySelector('.nav.prev').disabled = curSpread === 0;
-  document.querySelector('.nav.next').disabled = curSpread === SPREADS.length - 1;
+  const atStart = curSpread === 0, atEnd = curSpread === SPREADS.length - 1;
+  document.querySelector('.nav.prev').disabled = RTL ? atEnd : atStart;
+  document.querySelector('.nav.next').disabled = RTL ? atStart : atEnd;
   const sp = SPREADS[curSpread];
-  const shown = [sp.l, sp.r].filter(x => x != null);
+  // 表示は読み順に並べる（右綴じなら右ページが先）
+  const shown = (RTL ? [sp.r, sp.l] : [sp.l, sp.r]).filter(x => x != null);
   const labels = shown.map(i => DATA.pages[i].label);
-  document.getElementById('slider').value = curSpread;
+  document.getElementById('slider').value = sliderToSpread(curSpread);
   const cnt = DATA.materials.filter(m => m.hotspot !== false && onSpread(m)).length;
   document.getElementById('pginfo').textContent =
     labels.join('・') + ' — クリックできる素材 ' + cnt + '点';
@@ -742,16 +749,23 @@ function highlight(m, on) {
 }
 
 // ---- ナビ ----
-document.querySelector('.nav.prev').onclick = () => turn('prev');
-document.querySelector('.nav.next').onclick = () => turn('next');
+const btnLeft = document.querySelector('.nav.prev');
+const btnRight = document.querySelector('.nav.next');
+btnLeft.onclick = () => turn(RTL ? 'next' : 'prev');
+btnRight.onclick = () => turn(RTL ? 'prev' : 'next');
+btnLeft.setAttribute('aria-label', RTL ? '次のページ' : '前のページ');
+btnRight.setAttribute('aria-label', RTL ? '前のページ' : '次のページ');
+btnLeft.title = btnLeft.getAttribute('aria-label');
+btnRight.title = btnRight.getAttribute('aria-label');
 document.addEventListener('keydown', e => {
   if (e.target.matches('input, textarea')) return;
-  if (e.key === 'ArrowLeft') turn('prev');
-  else if (e.key === 'ArrowRight') turn('next');
+  if (e.key === 'ArrowLeft') turn(RTL ? 'next' : 'prev');
+  else if (e.key === 'ArrowRight') turn(RTL ? 'prev' : 'next');
 });
 const slider = document.getElementById('slider');
 slider.max = SPREADS.length - 1;
-slider.oninput = e => { if (!animating) showSpread(+e.target.value); };
+const sliderToSpread = v => RTL ? (SPREADS.length - 1 - v) : v;
+slider.oninput = e => { if (!animating) showSpread(sliderToSpread(+e.target.value)); };
 
 // ---- ページ番号ジャンプ ----
 // ここでの「ページ」は、このビューア内での通し番号(1〜総ページ数)。
