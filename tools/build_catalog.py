@@ -96,6 +96,37 @@ class Material:
         return self.ext.lower() in VECTOR_EXTS
 
 
+def parse_offsets(spec: str) -> list[tuple[int, int]]:
+    """ノンブルのズレ補正を読む。
+
+    "5"          … 全ページ +5
+    "1:5,12:6"   … 元PDFの1ページ目から +5、12ページ目から +6
+                   （途中に1枚差し込んで、それ以降が1つ繰り下がった場合など）
+    """
+    spec = (spec or "0").strip()
+    if ":" not in spec:
+        return [(1, int(spec))]
+    out = []
+    for part in spec.split(","):
+        page, off = part.split(":", 1)
+        out.append((int(page), int(off)))
+    return sorted(out)
+
+
+def parse_labels(path: str | None) -> dict[int, str]:
+    """ノンブルの個別指定を読む（列: page,label／pageは元PDFのページ番号）。
+
+    枝番ページ（14-1、192-3 など、通し番号では表せないノンブル）に使う。
+    """
+    if not path:
+        return {}
+    out: dict[int, str] = {}
+    with open(path, newline="", encoding="utf-8-sig") as f:
+        for row in csv.DictReader(f):
+            out[int(row["page"])] = row["label"].strip()
+    return out
+
+
 def parse_pages(spec: str | None, total: int) -> list[int]:
     """"21-34" や "1,5,10-12" のような指定を、0始まりのページ番号の並びにする。"""
     if not spec:
@@ -126,6 +157,8 @@ class Builder:
         # 誌面の一部だけを切り出して作れるようにする（元カタログの章単位で配るケース）。
         # self.page_indices[i] = ビューアのi番目に対応する、PDF内の0始まりページ番号。
         self.page_indices = parse_pages(args.pages, len(self.doc))
+        self.offsets = parse_offsets(args.page_offset)
+        self.nombres = parse_labels(args.labels)
         self.scale = args.dpi / 72.0
         self.materials: list[Material] = []
         self.by_key: dict[str, Material] = {}
@@ -145,6 +178,17 @@ class Builder:
                 key = (int(row["page"]), int(row["order"]))
                 out[key] = row["filename"].strip()
         return out
+
+    def nombre(self, src_pno: int) -> str:
+        """元PDFのページ（0始まり）に対する、誌面のページ番号（ノンブル）。"""
+        n1 = src_pno + 1
+        if n1 in self.nombres:
+            return self.nombres[n1]
+        off = 0
+        for start, o in self.offsets:
+            if n1 >= start:
+                off = o
+        return str(n1 + off)
 
     def _asset_file(self, name: str) -> Path | None:
         if not self.assets_dir or not name:
@@ -196,7 +240,8 @@ class Builder:
             # リンク一覧が無い場合の自動命名。誌面のページ番号で振っておくと、
             # 「p.12の3番目の写真」と口頭でも指し示せる。さらに、写真の近くに
             # 型番などの文字があれば名前に含め、型番でも検索できるようにする。
-            stem = f"p{pno + 1 + self.args.page_offset:02d}_{order:02d}"
+            nb = self.nombre(pno)
+            stem = f"p{nb.zfill(2) if nb.isdigit() else nb}_{order:02d}"
             if not linked and not self.args.no_name_hints:
                 hint = self._label_near(self.doc[pno], rect_hint) if rect_hint else None
                 if hint:
@@ -303,7 +348,7 @@ class Builder:
             pages.append({
                 # ラベルは元PDFのページ番号。抜粋して作っても、誌面の実ページと
                 # 突き合わせられるようにするため。
-                "label": self.args.page_label.format(n=src_pno + 1 + self.args.page_offset),
+                "label": self.args.page_label.format(n=self.nombre(src_pno)),
                 "src": rel,
                 "map": self._hitmap_uri(pos, pm.width, pm.height),
                 "mapW": pm.width, "mapH": pm.height,
@@ -533,8 +578,11 @@ def main():
     ap.add_argument("--pages", help="作る範囲。例 '21-34' や '1,5,10-12'（元PDFのページ番号・1始まり）")
     ap.add_argument("--cover", action="store_true", help="先頭ページを表紙（単独ページ）として扱う")
     ap.add_argument("--page-label", default="P.{n}", help="ページ表示名の書式。{n}は元PDFのページ番号（既定 'P.{n}'）")
-    ap.add_argument("--page-offset", type=int, default=0,
-                    help="ページ表示名の番号のズレ補正。誌面のノンブルとPDFのページ番号が違うときに指定")
+    ap.add_argument("--page-offset", default="0",
+                    help="ノンブルのズレ補正。'5'＝全ページ+5、"
+                         "'1:5,12:6'＝1ページ目から+5・12ページ目から+6（途中に差し込んだ場合）")
+    ap.add_argument("--labels",
+                    help="ノンブルの個別指定CSV（列: page,label）。枝番ページ（14-1 など）に使う")
     ap.add_argument("--no-name-hints", action="store_true",
                     help="リンク一覧が無いとき、誌面の近くの文字（型番など）を素材名に使わない")
     ap.add_argument("--include-unplaced", action="store_true",
